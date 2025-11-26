@@ -38,14 +38,16 @@ export function Toolbar({
           <button
             onClick={onOpenFolder}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition font-medium"
+            title="Select multiple photos and videos"
           >
-            Open Folder
+            Open Files
           </button>
           <button
             onClick={onOpenFile}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition"
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
+            title="Open a single file"
           >
-            Open File
+            Open Single
           </button>
         </div>
 

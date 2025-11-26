@@ -11,15 +11,15 @@ const ACCEPTED_TYPES = [
 
 export function selectFilesViaInput(): Promise<File[]> {
   return new Promise((resolve) => {
-    console.log('Opening folder picker via input element...');
+    console.log('Opening multi-file picker...');
     const input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
-    (input as any).webkitdirectory = true;
+    input.accept = 'image/*,video/*';
     
     input.onchange = () => {
       const files = Array.from(input.files || []);
-      console.log(`Folder picker returned ${files.length} files`);
+      console.log(`File picker returned ${files.length} files`);
       if (files.length > 0) {
         console.log('First few files:', files.slice(0, 5).map(f => f.name));
       }
@@ -27,7 +27,7 @@ export function selectFilesViaInput(): Promise<File[]> {
     };
     
     input.oncancel = () => {
-      console.log('Folder picker was cancelled');
+      console.log('File picker was cancelled');
       resolve([]);
     };
     
