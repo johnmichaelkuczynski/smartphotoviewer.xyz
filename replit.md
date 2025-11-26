@@ -8,10 +8,19 @@ A high-performance photo and video viewer with completely local AI-powered organ
 
 ## Recent Changes
 
-### Latest Fixes (November 26, 2025)
+### Latest Improvements (November 26, 2025)
+- **Filmstrip auto-scroll** - Filmstrip scrolls to keep current image visible and centered
+- **Bright yellow indicator** - Active thumbnail has thick yellow border with glow (very visible)
+- **Zoom persists** - Zoom level stays when navigating between images in filmstrip
+- **Drag-to-pan** - Click and drag zoomed images in filmstrip mode
+- **Position indicator** - Shows "X / Y" in filmstrip top-left corner
+- **Reset zoom button** - Appears when zoomed, click to reset to 100%
+
+### Earlier Fixes (November 26, 2025)
 - **Fixed photo cropping** - Images now display COMPLETE with letterboxing, never cropped
 - **Fixed file picker** - "Open Photos" button and "Select Photos/Videos" use reliable file picker (Ctrl+A to select all)
 - **Improved slideshow** - Added Previous/Next/Pause buttons, smooth crossfade transitions, fixed flickering bug
+- **Multi-video grid** - Proper 2x2 layout with videos fully contained
 - **Lazy loading thumbnails** - Only visible thumbnails load to prevent crashes with large folders
 - **Tailwind CSS v3** - Switched from v4 (ESM issues) to v3 + PostCSS for reliable builds
 
@@ -45,9 +54,9 @@ A high-performance photo and video viewer with completely local AI-powered organ
 
 ### Components
 - **GridView**: Grid with mouse wheel zoom (scroll = change columns), lazy loading, NO CROPPING
-- **FilmstripView**: Horizontal thumbnail strip with large preview
+- **FilmstripView**: Horizontal thumbnail strip with large preview, zoom with drag-to-pan, auto-scroll, bright yellow indicator
 - **Viewer**: Full-screen viewer with mouse wheel zoom
-- **Slideshow**: Previous/Next/Pause buttons, smooth crossfade transitions
+- **Slideshow**: Previous/Next/Pause buttons, smooth crossfade transitions, position indicator
 - **Settings**: Configuration panel for AI features and preferences
 - **Toolbar**: Main navigation and controls
 - **ContextMenu**: Right-click "Find Similar" functionality
