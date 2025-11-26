@@ -206,44 +206,47 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex flex-col bg-gray-800 overflow-hidden">
-                  <div className="p-2 text-center text-gray-400 text-sm border-b border-gray-700">
+                <div className="flex-1 flex flex-col bg-gray-800 min-h-0">
+                  <div className="p-2 text-center text-gray-400 text-sm border-b border-gray-700 flex-shrink-0">
                     Slot {index + 1} - Click a video to add
                   </div>
-                  <div className="flex-1 overflow-auto p-2">
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 min-h-0">
                     {availableVideos.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2 pb-2">
                         {availableVideos.map(vf => {
                           const thumbUrl = videoThumbnails.get(vf.path);
                           return (
                             <div
                               key={vf.path}
                               onClick={() => addVideoToSlot(index, vf)}
-                              className="relative aspect-video bg-gray-700 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group"
+                              className="relative bg-gray-700 rounded cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group"
+                              style={{ paddingBottom: '56.25%' }}
                             >
-                              {thumbUrl ? (
-                                <img
-                                  src={thumbUrl}
-                                  alt={vf.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <svg className="w-6 h-6 animate-spin text-gray-500" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
+                              <div className="absolute inset-0">
+                                {thumbUrl ? (
+                                  <img
+                                    src={thumbUrl}
+                                    alt={vf.name}
+                                    className="w-full h-full object-contain bg-black rounded"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <svg className="w-6 h-6 animate-spin text-gray-500" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                  <div className="bg-black bg-opacity-50 rounded-full p-1">
+                                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                  </div>
                                 </div>
-                              )}
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="bg-black bg-opacity-50 rounded-full p-1">
-                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                  </svg>
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-1">
+                                  <p className="text-white text-xs truncate">{vf.name}</p>
                                 </div>
-                              </div>
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <p className="text-white text-xs truncate">{vf.name}</p>
                               </div>
                             </div>
                           );
