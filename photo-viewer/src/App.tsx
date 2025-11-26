@@ -39,6 +39,7 @@ function App() {
   });
   const [indexingError, setIndexingError] = useState<string>('');
   const [originalFiles, setOriginalFiles] = useState<MediaFile[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   
   const [settings, setSettings] = useState<AppSettings>({
     aiEnabled: true,
@@ -223,8 +224,103 @@ function App() {
     });
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const items = e.dataTransfer.items;
+    const droppedFiles: File[] = [];
+
+    const processEntry = async (entry: FileSystemEntry): Promise<void> => {
+      if (entry.isFile) {
+        const fileEntry = entry as FileSystemFileEntry;
+        return new Promise((resolve) => {
+          fileEntry.file((file) => {
+            droppedFiles.push(file);
+            resolve();
+          });
+        });
+      } else if (entry.isDirectory) {
+        const dirEntry = entry as FileSystemDirectoryEntry;
+        const reader = dirEntry.createReader();
+        
+        return new Promise((resolve) => {
+          const readEntries = () => {
+            reader.readEntries(async (entries) => {
+              if (entries.length === 0) {
+                resolve();
+                return;
+              }
+              for (const ent of entries) {
+                await processEntry(ent);
+              }
+              readEntries();
+            });
+          };
+          readEntries();
+        });
+      }
+    };
+
+    const promises: Promise<void>[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const entry = items[i].webkitGetAsEntry();
+      if (entry) {
+        promises.push(processEntry(entry));
+      }
+    }
+
+    await Promise.all(promises);
+    console.log(`Dropped ${droppedFiles.length} files`);
+
+    if (droppedFiles.length > 0) {
+      const mediaFiles = processFilesToMediaFiles(droppedFiles);
+      
+      if (mediaFiles.length === 0) {
+        alert('No supported media files found in the dropped items.');
+        return;
+      }
+
+      setFiles(mediaFiles);
+      setDisplayFiles(mediaFiles);
+      setOriginalFiles(mediaFiles);
+      setShowClusters(false);
+      setEmbeddings(new Map());
+      setIndexingError('');
+      setViewMode({ type: 'grid', gridColumns: 10 });
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-gray-900">
+    <div 
+      className="h-screen flex flex-col bg-gray-900 relative"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragging && (
+        <div className="absolute inset-0 z-50 bg-blue-500 bg-opacity-30 border-4 border-dashed border-blue-400 flex items-center justify-center pointer-events-none">
+          <div className="text-center text-white">
+            <svg className="w-20 h-20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p className="text-2xl font-semibold">Drop folder or files here</p>
+          </div>
+        </div>
+      )}
       <Toolbar
         viewMode={viewMode}
         onViewModeChange={setViewMode}
@@ -249,7 +345,8 @@ function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <h2 className="text-2xl font-semibold mb-2">No Files Loaded</h2>
-              <p className="text-sm">Open a folder or file to get started</p>
+              <p className="text-sm mb-4">Drag and drop a folder here</p>
+              <p className="text-xs text-gray-500">or use the buttons above to browse</p>
             </div>
           </div>
         ) : (
