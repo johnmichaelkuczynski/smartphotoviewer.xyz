@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { MediaFile } from '../types';
 
 interface FilmstripViewProps {
@@ -7,6 +7,7 @@ interface FilmstripViewProps {
   onFileClick: (file: MediaFile, index: number) => void;
   thumbnailSize: 'small' | 'medium' | 'large';
   onContextMenu: (file: MediaFile, index: number, event: React.MouseEvent) => void;
+  onIndexChange: (index: number) => void;
 }
 
 const THUMBNAIL_SIZES = {
@@ -15,10 +16,38 @@ const THUMBNAIL_SIZES = {
   large: 160,
 };
 
-export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize, onContextMenu }: FilmstripViewProps) {
+export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize, onContextMenu, onIndexChange }: FilmstripViewProps) {
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
   const currentFile = files[currentIndex];
   const size = THUMBNAIL_SIZES[thumbnailSize];
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0) {
+      const nextIndex = Math.min(currentIndex + 1, files.length - 1);
+      onIndexChange(nextIndex);
+    } else if (e.deltaY < 0) {
+      const prevIndex = Math.max(currentIndex - 1, 0);
+      onIndexChange(prevIndex);
+    }
+  }, [currentIndex, files.length, onIndexChange]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = Math.min(currentIndex + 1, files.length - 1);
+        onIndexChange(nextIndex);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = Math.max(currentIndex - 1, 0);
+        onIndexChange(prevIndex);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, files.length, onIndexChange]);
 
   useEffect(() => {
     const newThumbnails = new Map<string, string>();
@@ -42,7 +71,7 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
   const currentUrl = thumbnails.get(currentFile?.path || '');
 
   return (
-    <div className="flex flex-col h-full bg-gray-900">
+    <div className="flex flex-col h-full bg-gray-900" onWheel={handleWheel}>
       <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
         {currentFile && currentUrl && (
           <div className="max-w-full max-h-full flex items-center justify-center">
