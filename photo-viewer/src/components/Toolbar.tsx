@@ -8,10 +8,12 @@ interface ToolbarProps {
   onGroupByTheme: () => void;
   onSlideshow: () => void;
   onSettings: () => void;
+  onResetView: () => void;
   aiEnabled: boolean;
   hasFiles: boolean;
   isIndexing: boolean;
   indexingProgress: { processed: number; total: number };
+  indexingError: string;
 }
 
 export function Toolbar({
@@ -22,10 +24,12 @@ export function Toolbar({
   onGroupByTheme,
   onSlideshow,
   onSettings,
+  onResetView,
   aiEnabled,
   hasFiles,
   isIndexing,
   indexingProgress,
+  indexingError,
 }: ToolbarProps) {
   return (
     <div className="bg-gray-800 border-b border-gray-700 p-4">
@@ -119,6 +123,13 @@ export function Toolbar({
                 Slideshow
               </button>
               
+              <button
+                onClick={onResetView}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
+              >
+                Reset View
+              </button>
+              
               {aiEnabled && (
                 <button
                   onClick={onGroupByTheme}
@@ -136,6 +147,11 @@ export function Toolbar({
           {isIndexing && (
             <div className="text-white text-sm bg-gray-700 px-3 py-1 rounded">
               Analyzing: {indexingProgress.processed} / {indexingProgress.total}
+            </div>
+          )}
+          {indexingError && (
+            <div className="text-white text-sm bg-red-600 px-3 py-1 rounded max-w-md truncate" title={indexingError}>
+              {indexingError}
             </div>
           )}
           <button

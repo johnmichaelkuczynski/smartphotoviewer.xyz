@@ -12,7 +12,7 @@ export function Slideshow({ files, interval, skipVideos, onClose }: SlideshowPro
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [url, setUrl] = useState<string>('');
-  const intervalRef = useRef<number>();
+  const intervalRef = useRef<number | undefined>(undefined);
 
   const displayFiles = skipVideos ? files.filter(f => f.type === 'image') : files;
   const currentFile = displayFiles[currentIndex];

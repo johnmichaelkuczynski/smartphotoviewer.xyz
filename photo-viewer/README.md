@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# Photo/Video Viewer with Local AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A high-performance photo and video viewer with local AI-powered organization features. View, organize, and find similar images without sending any data to external servers.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Core Viewing
+- **Dynamic Grid View**: Customize grid layout with any column/row configuration (2x50, 10x10, 20x20, etc.)
+- **Filmstrip View**: Horizontal thumbnail strip with large preview, adjustable thumbnail sizes (S/M/L)
+- **Individual Viewer**: Full-screen viewing with mouse wheel zoom
+- **Navigation**: Seamlessly navigate between photos and videos in a folder
+- **Slideshow Mode**: Automatic slideshow with configurable interval and option to skip videos
 
-## React Compiler
+### Local AI Features (100% Privacy-Safe)
+- **Group by Theme**: Automatically cluster images by visual similarity using local CLIP embeddings
+- **Find Similar**: Right-click any image to find visually similar items
+- **Smart Caching**: Embeddings cached locally in IndexedDB for instant performance
+- **Background Processing**: Non-blocking AI analysis that runs asynchronously
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Technical Highlights
+- Completely local processing after first model download
+- CLIP-based image embeddings via transformers.js
+- Optimized for large folders with hundreds of files
+- Works with NSFW content (all processing is private)
+- Supports: JPG, PNG, GIF, WebP, BMP, SVG, HEIC, MP4, WebM, OGG, MOV, AVI, MKV, and more
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Click "Open Folder" to select a folder containing photos/videos
+2. Browse using Grid or Filmstrip view
+3. Enable AI features in Settings to unlock theme grouping and similarity search
+4. Right-click any image to "Find Similar (AI)"
+5. Click "Group by Theme (AI)" to auto-organize images
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## First-Time Setup
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**Important**: Internet connection required for first-time AI model download (~200MB). After the first download, the CLIP model is cached locally in your browser and works completely offline for privacy-safe operation.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Keyboard Shortcuts
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Viewer Mode
+- Arrow Left/Right: Navigate between files
+- Escape: Exit viewer
+- Mouse Wheel: Zoom in/out
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Slideshow Mode
+- Space: Play/Pause
+- Arrow Left/Right: Navigate
+- Escape: Exit slideshow
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Technology Stack
+
+- React 19.2 + TypeScript 5.9
+- Vite 7.2 + Tailwind CSS 4.1
+- transformers.js (Xenova/clip-vit-base-patch32)
+- IndexedDB for caching
+- ML K-means clustering
+
+## Privacy
+
+All AI processing happens locally in your browser after the initial model download. No images, embeddings, or metadata are ever sent to external servers. The CLIP model is cached in your browser's Cache API for offline use.

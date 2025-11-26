@@ -28,6 +28,8 @@ function App() {
     processed: 0,
     isIndexing: false,
   });
+  const [indexingError, setIndexingError] = useState<string>('');
+  const [originalFiles, setOriginalFiles] = useState<MediaFile[]>([]);
   
   const [settings, setSettings] = useState<AppSettings>({
     aiEnabled: true,
@@ -37,13 +39,14 @@ function App() {
   });
 
   useEffect(() => {
-    if (settings.aiEnabled && files.length > 0) {
+    if (settings.aiEnabled && files.length > 0 && embeddings.size === 0) {
       startIndexing();
     }
   }, [files, settings.aiEnabled]);
 
   const startIndexing = async () => {
     try {
+      setIndexingError('');
       await initializeModel();
       
       setIndexingProgress({
@@ -52,16 +55,28 @@ function App() {
         isIndexing: true,
       });
 
-      const newEmbeddings = await batchGenerateEmbeddings(files, (processed, total) => {
-        setIndexingProgress({
-          total,
-          processed,
-          isIndexing: processed < total,
-        });
-      });
+      const newEmbeddings = await batchGenerateEmbeddings(
+        files,
+        (processed, total, _succeeded, _failed) => {
+          setIndexingProgress({
+            total,
+            processed,
+            isIndexing: processed < total,
+          });
+        },
+        (error) => {
+          setIndexingError(`AI indexing error: ${error.message}. Some features may be limited.`);
+        }
+      );
 
       setEmbeddings(newEmbeddings);
+      
+      if (newEmbeddings.size === 0) {
+        setIndexingError('Failed to generate any embeddings. AI features will not be available.');
+      }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setIndexingError(`Failed to initialize AI: ${message}. AI features disabled.`);
       console.error('Failed to index files:', error);
       setIndexingProgress({
         total: 0,
@@ -78,7 +93,10 @@ function App() {
     const mediaFiles = await loadMediaFilesFromDirectory(dirHandle);
     setFiles(mediaFiles);
     setDisplayFiles(mediaFiles);
+    setOriginalFiles(mediaFiles);
     setShowClusters(false);
+    setEmbeddings(new Map());
+    setIndexingError('');
     setViewMode({ type: 'grid', gridColumns: 10 });
   };
 
@@ -116,23 +134,39 @@ function App() {
 
   const handleGroupByTheme = () => {
     if (embeddings.size === 0) {
-      alert('Please wait for indexing to complete');
+      alert('AI indexing is not complete. Please wait or check for errors.');
       return;
     }
 
-    const newClusters = clusterByTheme(files, embeddings);
-    setClusters(newClusters);
-    setShowClusters(true);
+    try {
+      const newClusters = clusterByTheme(files, embeddings);
+      setClusters(newClusters);
+      setShowClusters(true);
+    } catch (error) {
+      alert('Failed to group by theme. Please try again.');
+      console.error('Clustering error:', error);
+    }
   };
 
   const handleFindSimilar = (file: MediaFile) => {
     if (embeddings.size === 0) {
-      alert('Please wait for indexing to complete');
+      alert('AI indexing is not complete. Please wait or check for errors.');
       return;
     }
 
-    const sortedFiles = sortBySimilarity(file, files, embeddings);
-    setDisplayFiles(sortedFiles);
+    try {
+      const sortedFiles = sortBySimilarity(file, files, embeddings);
+      setDisplayFiles(sortedFiles);
+      setShowClusters(false);
+      setViewMode({ type: 'grid', gridColumns: 10 });
+    } catch (error) {
+      alert('Failed to find similar images. Please try again.');
+      console.error('Similarity search error:', error);
+    }
+  };
+
+  const handleResetView = () => {
+    setDisplayFiles(originalFiles.length > 0 ? originalFiles : files);
     setShowClusters(false);
     setViewMode({ type: 'grid', gridColumns: 10 });
   };
@@ -156,10 +190,12 @@ function App() {
         onGroupByTheme={handleGroupByTheme}
         onSlideshow={() => setShowSlideshow(true)}
         onSettings={() => setShowSettings(true)}
+        onResetView={handleResetView}
         aiEnabled={settings.aiEnabled}
         hasFiles={files.length > 0}
         isIndexing={indexingProgress.isIndexing}
         indexingProgress={indexingProgress}
+        indexingError={indexingError}
       />
 
       <div className="flex-1 overflow-hidden">

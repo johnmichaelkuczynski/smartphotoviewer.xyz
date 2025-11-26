@@ -3,7 +3,7 @@ import type { MediaFile, EmbeddingCache } from '../types';
 import { extractVideoThumbnail } from './fileSystemService';
 import { saveEmbedding, getEmbedding } from './indexedDBService';
 
-env.allowLocalModels = false;
+env.allowLocalModels = true;
 env.allowRemoteModels = true;
 
 let clipModel: any = null;
@@ -23,10 +23,10 @@ export async function initializeModel(): Promise<void> {
   
   try {
     clipModel = await modelLoadPromise;
-    console.log('CLIP model loaded successfully');
+    console.log('CLIP model loaded successfully (cached locally for offline use)');
   } catch (error) {
     console.error('Failed to load CLIP model:', error);
-    throw error;
+    throw new Error('Failed to load AI model. Internet connection required for first-time use. After first download, works offline.');
   } finally {
     isModelLoading = false;
   }
@@ -100,20 +100,33 @@ export async function generateEmbedding(mediaFile: MediaFile): Promise<number[]>
 
 export async function batchGenerateEmbeddings(
   files: MediaFile[],
-  onProgress?: (processed: number, total: number) => void
+  onProgress?: (processed: number, total: number, succeeded: number, failed: number) => void,
+  onError?: (error: Error) => void
 ): Promise<Map<string, number[]>> {
   const embeddings = new Map<string, number[]>();
+  let succeeded = 0;
+  let failed = 0;
   
   for (let i = 0; i < files.length; i++) {
     try {
       const embedding = await generateEmbedding(files[i]);
       embeddings.set(files[i].path, embedding);
+      succeeded++;
       
       if (onProgress) {
-        onProgress(i + 1, files.length);
+        onProgress(i + 1, files.length, succeeded, failed);
       }
     } catch (error) {
+      failed++;
       console.error(`Failed to generate embedding for ${files[i].name}:`, error);
+      
+      if (onProgress) {
+        onProgress(i + 1, files.length, succeeded, failed);
+      }
+      
+      if (onError && failed === 1) {
+        onError(error as Error);
+      }
     }
   }
   
