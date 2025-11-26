@@ -2,13 +2,9 @@ import { useState, useEffect } from 'react';
 import type { MediaFile, ViewMode, AppSettings, IndexingProgress, Cluster } from './types';
 import { 
   selectFolder, 
-  selectFile, 
   loadMediaFilesFromDirectory, 
-  loadMediaFileFromHandle,
   selectFilesViaInput,
-  selectSingleFileViaInput,
-  processFilesToMediaFiles,
-  processSingleFileToMediaFile
+  processFilesToMediaFiles
 } from './services/fileSystemService';
 import { initializeModel, batchGenerateEmbeddings } from './services/embeddingService';
 import { clusterByTheme, sortBySimilarity } from './services/clusteringService';
@@ -126,36 +122,6 @@ function App() {
     setEmbeddings(new Map());
     setIndexingError('');
     setViewMode({ type: 'grid', gridColumns: 10 });
-  };
-
-  const handleOpenFile = async () => {
-    let mediaFile: MediaFile | null = null;
-    
-    try {
-      const fileHandle = await selectFile();
-      if (fileHandle) {
-        mediaFile = await loadMediaFileFromHandle(fileHandle);
-      }
-    } catch (err) {
-      console.log('File System Access API not available, using fallback');
-    }
-    
-    if (!mediaFile) {
-      const rawFile = await selectSingleFileViaInput();
-      if (!rawFile) return;
-      mediaFile = processSingleFileToMediaFile(rawFile);
-    }
-    
-    if (!mediaFile) {
-      alert('Selected file is not a supported media type.');
-      return;
-    }
-
-    setFiles([mediaFile]);
-    setDisplayFiles([mediaFile]);
-    setViewerFile(mediaFile);
-    setViewerIndex(0);
-    setViewMode({ type: 'viewer' });
   };
 
   const handleFileClick = (file: MediaFile, index: number) => {
@@ -325,7 +291,6 @@ function App() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenFolder={handleOpenFolder}
-        onOpenFile={handleOpenFile}
         onGroupByTheme={handleGroupByTheme}
         onSlideshow={() => setShowSlideshow(true)}
         onSettings={() => setShowSettings(true)}

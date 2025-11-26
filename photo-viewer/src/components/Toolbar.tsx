@@ -4,7 +4,6 @@ interface ToolbarProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onOpenFolder: () => void;
-  onOpenFile: () => void;
   onGroupByTheme: () => void;
   onSlideshow: () => void;
   onSettings: () => void;
@@ -20,7 +19,6 @@ export function Toolbar({
   viewMode,
   onViewModeChange,
   onOpenFolder,
-  onOpenFile,
   onGroupByTheme,
   onSlideshow,
   onSettings,
@@ -41,13 +39,6 @@ export function Toolbar({
             title="Select multiple photos and videos"
           >
             Open Files
-          </button>
-          <button
-            onClick={onOpenFile}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
-            title="Open a single file"
-          >
-            Open Single
           </button>
         </div>
 
