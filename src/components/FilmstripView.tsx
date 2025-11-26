@@ -21,12 +21,20 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
   const [videoUrls, setVideoUrls] = useState<Map<string, string>>(new Map());
   const [loadingVideos, setLoadingVideos] = useState<Set<string>>(new Set());
+  const [zoom, setZoom] = useState(1);
   const currentFile = files[currentIndex];
   const size = THUMBNAIL_SIZES[thumbnailSize];
   const urlsToRevokeRef = useRef<string[]>([]);
+  const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
+  const handlePreviewWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(prev => Math.max(0.1, Math.min(10, prev + delta)));
+  }, []);
+
+  const handleFilmstripWheel = useCallback((e: React.WheelEvent) => {
     if (e.deltaY > 0) {
       const nextIndex = Math.min(currentIndex + 1, files.length - 1);
       onIndexChange(nextIndex);
@@ -35,6 +43,10 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
       onIndexChange(prevIndex);
     }
   }, [currentIndex, files.length, onIndexChange]);
+
+  useEffect(() => {
+    setZoom(1);
+  }, [currentIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -113,15 +125,20 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
     : thumbnails.get(currentFile?.path || '');
 
   return (
-    <div className="flex flex-col h-full bg-gray-900" onWheel={handleWheel}>
-      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+    <div className="flex flex-col h-full bg-gray-900 relative">
+      <div 
+        ref={previewRef}
+        className="flex-1 flex items-center justify-center p-4 overflow-auto cursor-zoom-in"
+        onWheel={handlePreviewWheel}
+      >
         {currentFile && currentUrl && (
-          <div className="max-w-full max-h-full flex items-center justify-center">
+          <div className="flex items-center justify-center">
             {currentFile.type === 'image' ? (
               <img
                 src={currentUrl}
                 alt={currentFile.name}
-                className="max-w-full max-h-full object-contain"
+                className="max-w-none transition-transform"
+                style={{ transform: `scale(${zoom})` }}
               />
             ) : (
               <video
@@ -133,8 +150,14 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
           </div>
         )}
       </div>
+      
+      {currentFile?.type === 'image' && (
+        <div className="absolute top-4 right-4 bg-gray-800/80 px-3 py-1 rounded text-white text-sm z-10">
+          Zoom: {Math.round(zoom * 100)}%
+        </div>
+      )}
 
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-gray-700" onWheel={handleFilmstripWheel}>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {files.map((file, index) => {
             const thumbnailUrl = thumbnails.get(file.path);
