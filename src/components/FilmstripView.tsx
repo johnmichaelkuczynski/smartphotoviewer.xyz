@@ -29,6 +29,8 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
   const size = THUMBNAIL_SIZES[thumbnailSize];
   const urlsToRevokeRef = useRef<string[]>([]);
   const previewRef = useRef<HTMLDivElement>(null);
+  const filmstripRef = useRef<HTMLDivElement>(null);
+  const thumbnailRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const handlePreviewWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -73,6 +75,13 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
 
   useEffect(() => {
     setPanOffset({ x: 0, y: 0 });
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const thumbnail = thumbnailRefs.current.get(currentIndex);
+    if (thumbnail && filmstripRef.current) {
+      thumbnail.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
   }, [currentIndex]);
 
   useEffect(() => {
@@ -209,7 +218,7 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
       )}
 
       <div className="p-4 border-t border-gray-700" onWheel={handleFilmstripWheel}>
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div ref={filmstripRef} className="flex gap-2 overflow-x-auto pb-2">
           {files.map((file, index) => {
             const thumbnailUrl = thumbnails.get(file.path);
             const isActive = index === currentIndex;
@@ -217,8 +226,11 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
             return (
               <div
                 key={file.path}
+                ref={(el) => {
+                  if (el) thumbnailRefs.current.set(index, el);
+                }}
                 className={`flex-shrink-0 cursor-pointer rounded overflow-hidden transition-all ${
-                  isActive ? 'ring-2 ring-blue-500 scale-105' : 'hover:ring-2 hover:ring-gray-500'
+                  isActive ? 'ring-4 ring-yellow-400 scale-110 shadow-lg shadow-yellow-400/50' : 'hover:ring-2 hover:ring-gray-500'
                 }`}
                 style={{ width: size, height: size }}
                 onClick={() => onFileClick(file, index)}
