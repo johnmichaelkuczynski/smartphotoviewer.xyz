@@ -22,6 +22,9 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
   const [videoUrls, setVideoUrls] = useState<Map<string, string>>(new Map());
   const [loadingVideos, setLoadingVideos] = useState<Set<string>>(new Set());
   const [zoom, setZoom] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const currentFile = files[currentIndex];
   const size = THUMBNAIL_SIZES[thumbnailSize];
   const urlsToRevokeRef = useRef<string[]>([]);
@@ -44,8 +47,33 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
     }
   }, [currentIndex, files.length, onIndexChange]);
 
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (currentFile?.type === 'image') {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    }
+  }, [currentFile?.type, panOffset]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isDragging) {
+      setPanOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  }, [isDragging, dragStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   useEffect(() => {
     setZoom(1);
+    setPanOffset({ x: 0, y: 0 });
   }, [currentIndex]);
 
   useEffect(() => {
@@ -128,8 +156,14 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
     <div className="flex flex-col h-full bg-gray-900 relative">
       <div 
         ref={previewRef}
-        className="flex-1 flex items-center justify-center p-4 overflow-auto cursor-zoom-in"
+        className={`flex-1 flex items-center justify-center p-4 overflow-hidden select-none ${
+          currentFile?.type === 'image' ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''
+        }`}
         onWheel={handlePreviewWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
       >
         {currentFile && currentUrl && (
           <div className="flex items-center justify-center">
@@ -137,8 +171,12 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
               <img
                 src={currentUrl}
                 alt={currentFile.name}
-                className="max-w-none transition-transform"
-                style={{ transform: `scale(${zoom})` }}
+                className="max-w-none pointer-events-none"
+                draggable={false}
+                style={{ 
+                  transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+                  transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                }}
               />
             ) : (
               <video
@@ -153,7 +191,7 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
       
       {currentFile?.type === 'image' && (
         <div className="absolute top-4 right-4 bg-gray-800/80 px-3 py-1 rounded text-white text-sm z-10">
-          Zoom: {Math.round(zoom * 100)}%
+          Zoom: {Math.round(zoom * 100)}% | Drag to pan
         </div>
       )}
 
