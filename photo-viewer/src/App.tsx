@@ -93,14 +93,31 @@ function App() {
     }
   };
 
+  const calculateOptimalColumns = (count: number): number => {
+    if (count <= 1) return 1;
+    if (count <= 2) return 2;
+    if (count <= 4) return 2;
+    if (count <= 6) return 3;
+    if (count <= 9) return 3;
+    if (count <= 12) return 4;
+    if (count <= 16) return 4;
+    if (count <= 20) return 5;
+    if (count <= 30) return 6;
+    if (count <= 42) return 7;
+    if (count <= 56) return 8;
+    if (count <= 72) return 9;
+    return 10;
+  };
+
   const loadMediaFiles = (mediaFiles: MediaFile[]) => {
+    const optimalColumns = calculateOptimalColumns(mediaFiles.length);
     setFiles(mediaFiles);
     setDisplayFiles(mediaFiles);
     setOriginalFiles(mediaFiles);
     setShowClusters(false);
     setEmbeddings(new Map());
     setIndexingError('');
-    setViewMode({ type: 'grid', gridColumns: 10 });
+    setViewMode({ type: 'grid', gridColumns: optimalColumns });
   };
 
   const handleOpenFolder = async () => {
@@ -279,13 +296,7 @@ function App() {
         return;
       }
 
-      setFiles(mediaFiles);
-      setDisplayFiles(mediaFiles);
-      setOriginalFiles(mediaFiles);
-      setShowClusters(false);
-      setEmbeddings(new Map());
-      setIndexingError('');
-      setViewMode({ type: 'grid', gridColumns: 10 });
+      loadMediaFiles(mediaFiles);
     }
   };
 
