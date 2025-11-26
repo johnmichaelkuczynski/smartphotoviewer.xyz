@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { MediaFile } from '../types';
+import { extractVideoThumbnail } from '../services/fileSystemService';
 
 interface ViewerProps {
   file: MediaFile;
@@ -25,9 +26,11 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
   const [speed, setSpeed] = useState(1);
   const [multiVideoMode, setMultiVideoMode] = useState(false);
   const [videoSlots, setVideoSlots] = useState<(VideoSlot | null)[]>([null, null, null, null]);
+  const [videoThumbnails, setVideoThumbnails] = useState<Map<string, string>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const multiVideoRefs = useRef<(HTMLVideoElement | null)[]>([null, null, null, null]);
+  const thumbnailUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
     const objectUrl = URL.createObjectURL(file.file);
@@ -109,12 +112,39 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
   const activeSlotCount = videoSlots.filter(s => s !== null).length;
 
   useEffect(() => {
+    if (multiVideoMode && videoFiles.length > 0) {
+      const generateThumbnails = async () => {
+        const newThumbnails = new Map<string, string>();
+        
+        for (const vf of videoFiles) {
+          if (!videoThumbnails.has(vf.path)) {
+            try {
+              const thumbUrl = await extractVideoThumbnail(vf.file);
+              thumbnailUrlsRef.current.push(thumbUrl);
+              newThumbnails.set(vf.path, thumbUrl);
+              setVideoThumbnails(prev => new Map([...prev, [vf.path, thumbUrl]]));
+            } catch (err) {
+              console.error('Failed to generate thumbnail:', vf.name);
+            }
+          }
+        }
+      };
+      
+      generateThumbnails();
+    }
+  }, [multiVideoMode, videoFiles.length]);
+
+  useEffect(() => {
     return () => {
       videoSlots.forEach(slot => {
         if (slot?.url) URL.revokeObjectURL(slot.url);
       });
+      thumbnailUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
     };
   }, []);
+
+  const usedVideoPaths = new Set(videoSlots.filter(s => s !== null).map(s => s!.file.path));
+  const availableVideos = videoFiles.filter(vf => !usedVideoPaths.has(vf.path));
 
   if (multiVideoMode) {
     return (
@@ -176,21 +206,55 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
-                  <p className="mb-2">Slot {index + 1}</p>
-                  <select
-                    className="bg-gray-700 text-white text-sm rounded px-2 py-1"
-                    value=""
-                    onChange={(e) => {
-                      const selectedFile = videoFiles.find(f => f.path === e.target.value);
-                      if (selectedFile) addVideoToSlot(index, selectedFile);
-                    }}
-                  >
-                    <option value="">Select a video...</option>
-                    {videoFiles.map(vf => (
-                      <option key={vf.path} value={vf.path}>{vf.name}</option>
-                    ))}
-                  </select>
+                <div className="flex-1 flex flex-col bg-gray-800 overflow-hidden">
+                  <div className="p-2 text-center text-gray-400 text-sm border-b border-gray-700">
+                    Slot {index + 1} - Click a video to add
+                  </div>
+                  <div className="flex-1 overflow-auto p-2">
+                    {availableVideos.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {availableVideos.map(vf => {
+                          const thumbUrl = videoThumbnails.get(vf.path);
+                          return (
+                            <div
+                              key={vf.path}
+                              onClick={() => addVideoToSlot(index, vf)}
+                              className="relative aspect-video bg-gray-700 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group"
+                            >
+                              {thumbUrl ? (
+                                <img
+                                  src={thumbUrl}
+                                  alt={vf.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <svg className="w-6 h-6 animate-spin text-gray-500" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                </div>
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-black bg-opacity-50 rounded-full p-1">
+                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p className="text-white text-xs truncate">{vf.name}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-gray-500">
+                        <p>No more videos available</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
