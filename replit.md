@@ -8,6 +8,13 @@ A high-performance photo and video viewer with completely local AI-powered organ
 
 ## Recent Changes
 
+### Latest Fixes (November 26, 2025)
+- **Fixed photo cropping** - Images now display COMPLETE with letterboxing, never cropped
+- **Fixed file picker** - "Open Photos" button and "Select Photos/Videos" use reliable file picker (Ctrl+A to select all)
+- **Improved slideshow** - Added Previous/Next/Pause buttons, smooth crossfade transitions, fixed flickering bug
+- **Lazy loading thumbnails** - Only visible thumbnails load to prevent crashes with large folders
+- **Tailwind CSS v3** - Switched from v4 (ESM issues) to v3 + PostCSS for reliable builds
+
 ### Initial Implementation (November 26, 2025)
 - Created full-stack photo/video viewer application
 - Implemented local CLIP-based AI features for theme grouping and similarity search
@@ -15,26 +22,32 @@ A high-performance photo and video viewer with completely local AI-powered organ
 - Added filmstrip view and individual viewer with zoom
 - Implemented slideshow mode with configurable options
 - Set up IndexedDB caching for embeddings
-- Configured Vite dev server on port 5000
+
+## User Preferences
+
+- **CRITICAL**: Photos must NEVER be cropped - always show complete images with letterboxing
+- File picker method preferred over folder picker (more reliable)
+- Dark mode theme
+- Default slideshow interval: 3 seconds
 
 ## Project Architecture
 
 ### Frontend Structure
 - **React + TypeScript + Vite**: Modern development stack
-- **Tailwind CSS v4**: Styling with new Vite plugin approach
-- **File System Access API**: Local file/folder selection without uploads
+- **Tailwind CSS v3**: Traditional PostCSS setup for reliable builds
+- **File picker**: Navigate to folder, Ctrl+A to select all files
 
-### Services Layer
-1. **fileSystemService.ts**: Handles local file system access, media file loading, and video thumbnail generation
-2. **indexedDBService.ts**: Manages persistent embedding cache in IndexedDB
-3. **embeddingService.ts**: Local CLIP model (Xenova/clip-vit-base-patch32) for image embedding generation
-4. **clusteringService.ts**: K-means clustering for theme grouping and similarity search
+### Key Files
+- Main app: `src/App.tsx`
+- Services: `src/services/`
+- Components: `src/components/`
+- Types: `src/types.ts`
 
 ### Components
-- **GridView**: Virtualized grid with customizable columns/rows
+- **GridView**: Grid with mouse wheel zoom (scroll = change columns), lazy loading, NO CROPPING
 - **FilmstripView**: Horizontal thumbnail strip with large preview
 - **Viewer**: Full-screen viewer with mouse wheel zoom
-- **Slideshow**: Automatic slideshow with skip videos option
+- **Slideshow**: Previous/Next/Pause buttons, smooth crossfade transitions
 - **Settings**: Configuration panel for AI features and preferences
 - **Toolbar**: Main navigation and controls
 - **ContextMenu**: Right-click "Find Similar" functionality
@@ -42,62 +55,29 @@ A high-performance photo and video viewer with completely local AI-powered organ
 ### Key Features
 
 **Core Viewing**
-- Dynamic grid view (any column/row configuration)
+- Dynamic grid view - mouse wheel changes column count
+- Complete images always shown (object-contain with letterboxing)
 - Filmstrip view with adjustable thumbnail sizes (S/M/L)
 - Individual viewer with mouse wheel zoom
-- Navigation between photos and videos
-- Slideshow mode with configurable interval
+- Slideshow with Previous/Next/Pause controls
 
 **Local AI Features (100% Privacy-Safe)**
 - Group by Theme: Auto-cluster images by visual similarity
 - Find Similar: Right-click to find visually similar items
-- Background indexing with progress indicator
-- Persistent embedding cache in IndexedDB
-- Works offline, no external API calls
+- Works offline after initial model download
 
-**Performance Optimizations**
-- Asynchronous embedding generation
-- IndexedDB caching (keyed by filepath + timestamp)
-- Lazy loading thumbnails
-- Efficient grid rendering for large folders
+## Deployment
 
-## Technology Stack
-
-- React 19.2.0
-- TypeScript 5.9.3
-- Vite 7.2.4
-- Tailwind CSS 4.1.17
-- @xenova/transformers 2.17.2 (CLIP model)
-- idb 8.0.3 (IndexedDB wrapper)
-- ml-kmeans 7.0.0 (clustering)
+**Target**: Render.com (external deployment)
+- Build command: `npm run build`
+- Start command: `npm run preview`
+- Output directory: `dist/`
 
 ## Supported Media Formats
 
-**Images**: JPG, JPEG, PNG, GIF, WebP, BMP, SVG, HEIC, HEIF  
-**Videos**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, FLV, WMV
+**Images**: JPG, JPEG, JFIF, PNG, GIF, WebP, BMP, SVG, HEIC, HEIF, AVIF, TIF, TIFF
+**Videos**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, FLV, WMV, 3GP, MPG, MPEG
 
 ## Privacy & Security
 
-All AI processing happens locally in the browser using WebAssembly/WebGL acceleration. No images, embeddings, or metadata are ever sent to external servers. Safe for any content including NSFW material.
-
-**Model Loading**: The CLIP model (~200MB) is downloaded from HuggingFace on first use and cached locally in the browser's Cache API via transformers.js. After the initial download, the model works completely offline. Internet connection is only required for the first-time model download.
-
-## User Preferences
-
-- Default AI features: Enabled
-- Default slideshow interval: 3 seconds
-- Default grid columns: 10
-- Theme: Dark mode
-
-## Development
-
-**Workflow**: Photo Viewer Dev Server
-- Command: `cd photo-viewer && npm run dev`
-- Port: 5000
-- Output: webview
-
-**Key Files**
-- Main app: `photo-viewer/src/App.tsx`
-- Services: `photo-viewer/src/services/`
-- Components: `photo-viewer/src/components/`
-- Types: `photo-viewer/src/types.ts`
+All AI processing happens locally in the browser. No images or data sent to external servers. Safe for any content.
