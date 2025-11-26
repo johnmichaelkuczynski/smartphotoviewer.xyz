@@ -6,9 +6,10 @@ interface SlideshowProps {
   interval: number;
   skipVideos: boolean;
   onClose: () => void;
+  onOpenFiles: () => void;
 }
 
-export function Slideshow({ files, interval, skipVideos, onClose }: SlideshowProps) {
+export function Slideshow({ files, interval, skipVideos, onClose, onOpenFiles }: SlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -184,6 +185,12 @@ export function Slideshow({ files, interval, skipVideos, onClose }: SlideshowPro
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium"
             >
               Exit
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenFiles(); }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium"
+            >
+              Open Photos
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); if (!isTransitioning) goToPrevious(); }}

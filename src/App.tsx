@@ -213,8 +213,17 @@ function App() {
   };
 
   const handleResetView = () => {
-    setDisplayFiles(originalFiles.length > 0 ? originalFiles : files);
+    setFiles([]);
+    setDisplayFiles([]);
+    setOriginalFiles([]);
     setShowClusters(false);
+    setClusters([]);
+    setEmbeddings(new Map());
+    setIndexingProgress({ total: 0, processed: 0, isIndexing: false });
+    setIndexingError('');
+    setViewerFile(null);
+    setShowSlideshow(false);
+    setContextMenu(null);
     setViewMode({ type: 'grid', gridColumns: 10 });
   };
 
@@ -440,6 +449,7 @@ function App() {
                 onNext={handleViewerNext}
                 onPrevious={handleViewerPrevious}
                 onClose={() => setViewMode({ type: 'grid', gridColumns: 10 })}
+                onOpenFiles={handleOpenFiles}
               />
             )}
           </>
@@ -452,6 +462,7 @@ function App() {
           interval={settings.slideshowInterval}
           skipVideos={settings.slideshowSkipVideos}
           onClose={() => setShowSlideshow(false)}
+          onOpenFiles={handleOpenFiles}
         />
       )}
 

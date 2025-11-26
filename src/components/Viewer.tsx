@@ -10,6 +10,7 @@ interface ViewerProps {
   onNext: () => void;
   onPrevious: () => void;
   onClose: () => void;
+  onOpenFiles: () => void;
 }
 
 interface VideoSlot {
@@ -20,7 +21,7 @@ interface VideoSlot {
 
 const SPEED_PRESETS = [0.2, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5];
 
-export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevious, onClose }: ViewerProps) {
+export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevious, onClose, onOpenFiles }: ViewerProps) {
   const [zoom, setZoom] = useState(1);
   const [url, setUrl] = useState<string>('');
   const [speed, setSpeed] = useState(1);
@@ -276,6 +277,12 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
           >
             Close
+          </button>
+          <button
+            onClick={onOpenFiles}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition"
+          >
+            Open Photos
           </button>
           <span className="text-white text-sm">
             {currentIndex + 1} / {totalFiles}
