@@ -3,7 +3,6 @@ import type { MediaFile, ViewMode, AppSettings, IndexingProgress, Cluster } from
 import { 
   selectFolder, 
   loadMediaFilesFromDirectory, 
-  selectFilesViaInput,
   selectFolderViaInput,
   processFilesToMediaFiles
 } from './services/fileSystemService';
@@ -146,19 +145,6 @@ function App() {
     loadMediaFiles(mediaFiles);
   };
 
-  const handleOpenFiles = async () => {
-    const rawFiles = await selectFilesViaInput();
-    if (rawFiles.length === 0) return;
-    
-    const mediaFiles = processFilesToMediaFiles(rawFiles);
-    
-    if (mediaFiles.length === 0) {
-      alert('No supported media files found in the selected files.');
-      return;
-    }
-    
-    loadMediaFiles(mediaFiles);
-  };
 
   const handleFileClick = (file: MediaFile, index: number) => {
     setViewerFile(file);
@@ -321,7 +307,6 @@ function App() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenFolder={handleOpenFolder}
-        onOpenFiles={handleOpenFiles}
         onGroupByTheme={handleGroupByTheme}
         onSlideshow={() => setShowSlideshow(true)}
         onSettings={() => setShowSettings(true)}
@@ -341,22 +326,14 @@ function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <h2 className="text-2xl font-semibold mb-2">No Files Loaded</h2>
-              <p className="text-sm mb-2">Drag and drop a folder here</p>
-              <p className="text-xs text-gray-500 mb-4">or use the buttons above</p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={handleOpenFolder}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition font-medium"
-                >
-                  Open Folder
-                </button>
-                <button
-                  onClick={handleOpenFiles}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
-                >
-                  Open Files
-                </button>
-              </div>
+              <p className="text-sm mb-4">Drag and drop a folder here</p>
+              <button
+                onClick={handleOpenFolder}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium text-lg"
+              >
+                Open Photos
+              </button>
+              <p className="text-xs text-gray-500 mt-3">Browse to folder, then Ctrl+A to select all</p>
             </div>
           </div>
         ) : (

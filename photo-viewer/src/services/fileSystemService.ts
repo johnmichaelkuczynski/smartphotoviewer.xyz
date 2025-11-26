@@ -37,16 +37,15 @@ export function selectFilesViaInput(): Promise<File[]> {
 
 export function selectFolderViaInput(): Promise<File[]> {
   return new Promise((resolve) => {
-    console.log('Opening folder picker via input...');
+    console.log('Opening file picker for folder contents...');
     const input = document.createElement('input');
     input.type = 'file';
-    input.webkitdirectory = true;
-    (input as any).directory = true;
-    (input as any).mozdirectory = true;
+    input.multiple = true;
+    input.accept = 'image/*,video/*';
     
     input.onchange = () => {
       const files = Array.from(input.files || []);
-      console.log(`Folder picker returned ${files.length} files`);
+      console.log(`File picker returned ${files.length} files`);
       if (files.length > 0) {
         console.log('First few files:', files.slice(0, 5).map(f => f.name));
       }
@@ -54,7 +53,7 @@ export function selectFolderViaInput(): Promise<File[]> {
     };
     
     input.oncancel = () => {
-      console.log('Folder picker was cancelled');
+      console.log('File picker was cancelled');
       resolve([]);
     };
     
