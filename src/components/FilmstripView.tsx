@@ -72,7 +72,6 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
   }, []);
 
   useEffect(() => {
-    setZoom(1);
     setPanOffset({ x: 0, y: 0 });
   }, [currentIndex]);
 
@@ -189,9 +188,23 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
         )}
       </div>
       
+      <div className="absolute top-4 left-4 bg-gray-800/80 px-3 py-1 rounded text-white text-sm z-10">
+        {currentIndex + 1} / {files.length}
+      </div>
+      
       {currentFile?.type === 'image' && (
-        <div className="absolute top-4 right-4 bg-gray-800/80 px-3 py-1 rounded text-white text-sm z-10">
-          Zoom: {Math.round(zoom * 100)}% | Drag to pan
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          <div className="bg-gray-800/80 px-3 py-1 rounded text-white text-sm">
+            Zoom: {Math.round(zoom * 100)}%
+          </div>
+          {zoom !== 1 && (
+            <button
+              onClick={() => { setZoom(1); setPanOffset({ x: 0, y: 0 }); }}
+              className="bg-gray-800/80 hover:bg-gray-700 px-2 py-1 rounded text-white text-sm"
+            >
+              Reset
+            </button>
+          )}
         </div>
       )}
 
