@@ -38,7 +38,7 @@ export function GridView({ files, columns, onFileClick, onContextMenu }: GridVie
   return (
     <div
       ref={gridRef}
-      className="grid gap-2 p-4 h-full overflow-auto bg-gray-900"
+      className="grid gap-1 p-2 h-full overflow-auto bg-gray-900 content-start"
       style={{
         gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
       }}
@@ -49,7 +49,7 @@ export function GridView({ files, columns, onFileClick, onContextMenu }: GridVie
         return (
           <div
             key={file.path}
-            className="relative aspect-square bg-gray-800 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group"
+            className="relative bg-gray-800 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group flex items-center justify-center"
             onClick={() => onFileClick(file, index)}
             onContextMenu={(e) => {
               e.preventDefault();
@@ -62,15 +62,15 @@ export function GridView({ files, columns, onFileClick, onContextMenu }: GridVie
                   <img
                     src={thumbnailUrl}
                     alt={file.name}
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                     loading="lazy"
                   />
                 ) : (
-                  <div className="relative w-full h-full">
+                  <div className="relative">
                     <img
                       src={thumbnailUrl}
                       alt={file.name}
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-full object-contain"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
@@ -82,7 +82,7 @@ export function GridView({ files, columns, onFileClick, onContextMenu }: GridVie
                 )}
               </>
             )}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <p className="text-white text-xs truncate">{file.name}</p>
             </div>
           </div>

@@ -334,7 +334,7 @@ function App() {
                       <span className="text-gray-400 text-sm">({cluster.files.length} items)</span>
                     </div>
                     <div
-                      className="grid gap-2"
+                      className="grid gap-1"
                       style={{
                         gridTemplateColumns: `repeat(${viewMode.gridColumns || 10}, minmax(0, 1fr))`,
                       }}
@@ -344,7 +344,7 @@ function App() {
                         return (
                           <div
                             key={file.path}
-                            className="relative aspect-square bg-gray-800 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                            className="relative bg-gray-800 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all flex items-center justify-center"
                             onClick={() => handleFileClick(file, files.indexOf(file))}
                             onContextMenu={(e) => {
                               e.preventDefault();
@@ -354,7 +354,7 @@ function App() {
                             <img
                               src={url}
                               alt={file.name}
-                              className="w-full h-full object-cover"
+                              className="max-w-full max-h-full object-contain"
                               loading="lazy"
                             />
                             {file.type === 'video' && (
