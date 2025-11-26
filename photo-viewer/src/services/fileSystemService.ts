@@ -2,6 +2,53 @@ import type { MediaFile } from '../types';
 
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'heic', 'heif'];
 const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'm4v', 'flv', 'wmv'];
+const ACCEPTED_TYPES = [
+  ...IMAGE_EXTENSIONS.map(ext => `image/${ext === 'jpg' ? 'jpeg' : ext}`),
+  ...VIDEO_EXTENSIONS.map(ext => `video/${ext}`),
+  'image/*',
+  'video/*',
+].join(',');
+
+export function selectFilesViaInput(): Promise<File[]> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = ACCEPTED_TYPES;
+    input.webkitdirectory = true;
+    
+    input.onchange = () => {
+      const files = Array.from(input.files || []);
+      resolve(files);
+    };
+    
+    input.oncancel = () => {
+      resolve([]);
+    };
+    
+    input.click();
+  });
+}
+
+export function selectSingleFileViaInput(): Promise<File | null> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = false;
+    input.accept = ACCEPTED_TYPES;
+    
+    input.onchange = () => {
+      const files = Array.from(input.files || []);
+      resolve(files[0] || null);
+    };
+    
+    input.oncancel = () => {
+      resolve(null);
+    };
+    
+    input.click();
+  });
+}
 
 export async function selectFolder(): Promise<FileSystemDirectoryHandle | null> {
   try {
@@ -97,6 +144,46 @@ export async function loadMediaFileFromHandle(
     handle,
     name: handle.name,
     path: handle.name,
+    type,
+    lastModified: file.lastModified,
+  };
+}
+
+export function processFilesToMediaFiles(files: File[]): MediaFile[] {
+  const mediaFiles: MediaFile[] = [];
+  
+  for (const file of files) {
+    if (!isMediaFile(file.name)) continue;
+    
+    const type = getMediaType(file.name);
+    if (!type) continue;
+    
+    const relativePath = (file as any).webkitRelativePath || file.name;
+    
+    mediaFiles.push({
+      file,
+      handle: null as any,
+      name: file.name,
+      path: relativePath,
+      type,
+      lastModified: file.lastModified,
+    });
+  }
+  
+  return mediaFiles.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function processSingleFileToMediaFile(file: File): MediaFile | null {
+  if (!isMediaFile(file.name)) return null;
+  
+  const type = getMediaType(file.name);
+  if (!type) return null;
+  
+  return {
+    file,
+    handle: null as any,
+    name: file.name,
+    path: file.name,
     type,
     lastModified: file.lastModified,
   };

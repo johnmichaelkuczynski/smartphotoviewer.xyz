@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import type { MediaFile, ViewMode, AppSettings, IndexingProgress, Cluster } from './types';
-import { selectFolder, selectFile, loadMediaFilesFromDirectory, loadMediaFileFromHandle } from './services/fileSystemService';
+import { 
+  selectFolder, 
+  selectFile, 
+  loadMediaFilesFromDirectory, 
+  loadMediaFileFromHandle,
+  selectFilesViaInput,
+  selectSingleFileViaInput,
+  processFilesToMediaFiles,
+  processSingleFileToMediaFile
+} from './services/fileSystemService';
 import { initializeModel, batchGenerateEmbeddings } from './services/embeddingService';
 import { clusterByTheme, sortBySimilarity } from './services/clusteringService';
 import { GridView } from './components/GridView';
@@ -87,10 +96,28 @@ function App() {
   };
 
   const handleOpenFolder = async () => {
-    const dirHandle = await selectFolder();
-    if (!dirHandle) return;
-
-    const mediaFiles = await loadMediaFilesFromDirectory(dirHandle);
+    let mediaFiles: MediaFile[] = [];
+    
+    try {
+      const dirHandle = await selectFolder();
+      if (dirHandle) {
+        mediaFiles = await loadMediaFilesFromDirectory(dirHandle);
+      }
+    } catch (err) {
+      console.log('File System Access API not available, using fallback');
+    }
+    
+    if (mediaFiles.length === 0) {
+      const rawFiles = await selectFilesViaInput();
+      if (rawFiles.length === 0) return;
+      mediaFiles = processFilesToMediaFiles(rawFiles);
+    }
+    
+    if (mediaFiles.length === 0) {
+      alert('No supported media files found in the selected folder.');
+      return;
+    }
+    
     setFiles(mediaFiles);
     setDisplayFiles(mediaFiles);
     setOriginalFiles(mediaFiles);
@@ -101,11 +128,27 @@ function App() {
   };
 
   const handleOpenFile = async () => {
-    const fileHandle = await selectFile();
-    if (!fileHandle) return;
-
-    const mediaFile = await loadMediaFileFromHandle(fileHandle);
-    if (!mediaFile) return;
+    let mediaFile: MediaFile | null = null;
+    
+    try {
+      const fileHandle = await selectFile();
+      if (fileHandle) {
+        mediaFile = await loadMediaFileFromHandle(fileHandle);
+      }
+    } catch (err) {
+      console.log('File System Access API not available, using fallback');
+    }
+    
+    if (!mediaFile) {
+      const rawFile = await selectSingleFileViaInput();
+      if (!rawFile) return;
+      mediaFile = processSingleFileToMediaFile(rawFile);
+    }
+    
+    if (!mediaFile) {
+      alert('Selected file is not a supported media type.');
+      return;
+    }
 
     setFiles([mediaFile]);
     setDisplayFiles([mediaFile]);
