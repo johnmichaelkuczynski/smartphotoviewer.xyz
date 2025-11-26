@@ -168,21 +168,21 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
           <span className="text-white font-medium">Multi-Video Mode ({activeSlotCount}/4 videos)</span>
         </div>
 
-        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-1 p-1 bg-gray-800">
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-1 p-1 bg-gray-800 min-h-0 overflow-hidden">
           {videoSlots.map((slot, index) => (
-            <div key={index} className="relative bg-gray-900 rounded overflow-hidden flex flex-col">
+            <div key={index} className="relative bg-gray-900 rounded overflow-hidden min-h-0">
               {slot ? (
-                <>
+                <div className="absolute inset-0 flex flex-col">
                   <video
                     ref={el => { multiVideoRefs.current[index] = el; }}
                     src={slot.url}
                     controls
-                    className="flex-1 w-full object-contain"
+                    className="flex-1 w-full object-contain min-h-0"
                     onLoadedMetadata={(e) => {
                       (e.target as HTMLVideoElement).playbackRate = slot.speed;
                     }}
                   />
-                  <div className="absolute top-2 right-2 flex gap-1">
+                  <div className="absolute top-2 right-2 flex gap-1 z-10">
                     <button
                       onClick={() => removeVideoFromSlot(index)}
                       className="p-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs"
@@ -190,7 +190,7 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
                       ✕
                     </button>
                   </div>
-                  <div className="p-2 bg-gray-800 flex items-center gap-2">
+                  <div className="p-2 bg-gray-800 flex items-center gap-2 flex-shrink-0">
                     <span className="text-white text-xs truncate flex-1">{slot.file.name}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-gray-400 text-xs">{slot.speed}x</span>
@@ -205,9 +205,9 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
                       />
                     </div>
                   </div>
-                </>
+                </div>
               ) : (
-                <div className="flex-1 flex flex-col bg-gray-800 min-h-0">
+                <div className="absolute inset-0 flex flex-col bg-gray-800">
                   <div className="p-2 text-center text-gray-400 text-sm border-b border-gray-700 flex-shrink-0">
                     Slot {index + 1} - Click a video to add
                   </div>
