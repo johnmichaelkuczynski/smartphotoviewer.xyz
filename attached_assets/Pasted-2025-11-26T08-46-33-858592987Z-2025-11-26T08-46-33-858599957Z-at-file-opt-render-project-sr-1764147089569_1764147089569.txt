@@ -1,0 +1,50 @@
+2025-11-26T08:46:33.858592987Z 
+2025-11-26T08:46:33.858599957Z     at file:///opt/render/project/src/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66928:23
+2025-11-26T08:46:33.858604567Z     at requestCallbacks.on-resolve (/opt/render/project/src/node_modules/esbuild/lib/main.js:1225:28)
+2025-11-26T08:46:33.858609538Z     at handleRequest (/opt/render/project/src/node_modules/esbuild/lib/main.js:647:17)
+2025-11-26T08:46:33.858613758Z     at handleIncomingPacket (/opt/render/project/src/node_modules/esbuild/lib/main.js:672:7)
+2025-11-26T08:46:33.858617407Z     at Socket.readFromStdout (/opt/render/project/src/node_modules/esbuild/lib/main.js:600:7)
+2025-11-26T08:46:33.858621188Z     at Socket.emit (node:events:518:28)
+2025-11-26T08:46:33.858625128Z     at addChunk (node:internal/streams/readable:561:12)
+2025-11-26T08:46:33.858629688Z     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+2025-11-26T08:46:33.858633698Z     at Readable.push (node:internal/streams/readable:392:5)
+2025-11-26T08:46:33.858637828Z     at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+2025-11-26T08:46:33.858641418Z 
+2025-11-26T08:46:33.858645448Z   This error came from the "onResolve" callback registered here:
+2025-11-26T08:46:33.858649318Z 
+2025-11-26T08:46:33.858653498Z     node_modules/esbuild/lib/main.js:1150:20:
+2025-11-26T08:46:33.858658079Z       1150 │       let promise = setup({
+2025-11-26T08:46:33.858675029Z            ╵                     ^
+2025-11-26T08:46:33.858677449Z 
+2025-11-26T08:46:33.858679979Z     at setup (file:///opt/render/project/src/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66890:18)
+2025-11-26T08:46:33.858682529Z     at handlePlugins (/opt/render/project/src/node_modules/esbuild/lib/main.js:1150:21)
+2025-11-26T08:46:33.858685699Z     at buildOrContextImpl (/opt/render/project/src/node_modules/esbuild/lib/main.js:873:5)
+2025-11-26T08:46:33.858688449Z     at Object.buildOrContext (/opt/render/project/src/node_modules/esbuild/lib/main.js:699:5)
+2025-11-26T08:46:33.85871915Z     at /opt/render/project/src/node_modules/esbuild/lib/main.js:2023:15
+2025-11-26T08:46:33.85872608Z     at new Promise (<anonymous>)
+2025-11-26T08:46:33.85872878Z     at Object.build (/opt/render/project/src/node_modules/esbuild/lib/main.js:2022:25)
+2025-11-26T08:46:33.85873165Z     at build (/opt/render/project/src/node_modules/esbuild/lib/main.js:1873:51)
+2025-11-26T08:46:33.85873511Z     at bundleConfigFile (file:///opt/render/project/src/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66845:24)
+2025-11-26T08:46:33.85873749Z 
+2025-11-26T08:46:33.85873998Z   The plugin "externalize-deps" was triggered by this import
+2025-11-26T08:46:33.85874207Z 
+2025-11-26T08:46:33.85874513Z     vite.config.ts:3:24:
+2025-11-26T08:46:33.85874767Z       3 │ import tailwindcss from '@tailwindcss/vite'
+2025-11-26T08:46:33.85875018Z         ╵                         ~~~~~~~~~~~~~~~~~~~
+2025-11-26T08:46:33.85875247Z 
+2025-11-26T08:46:33.860534748Z failed to load config from /opt/render/project/src/vite.config.ts
+2025-11-26T08:46:33.860727942Z error during build:
+2025-11-26T08:46:33.860743752Z Error: Build failed with 1 error:
+2025-11-26T08:46:33.860748112Z node_modules/esbuild/lib/main.js:1225:27: ERROR: [plugin: externalize-deps] "@tailwindcss/vite" resolved to an ESM file. ESM file cannot be loaded by `require`. See https://vite.dev/guide/troubleshooting.html#this-package-is-esm-only for more details.
+2025-11-26T08:46:33.860751892Z     at failureErrorWithLog (/opt/render/project/src/node_modules/esbuild/lib/main.js:1472:15)
+2025-11-26T08:46:33.860755712Z     at /opt/render/project/src/node_modules/esbuild/lib/main.js:945:25
+2025-11-26T08:46:33.860757492Z     at runOnEndCallbacks (/opt/render/project/src/node_modules/esbuild/lib/main.js:1315:45)
+2025-11-26T08:46:33.860759142Z     at buildResponseToResult (/opt/render/project/src/node_modules/esbuild/lib/main.js:943:7)
+2025-11-26T08:46:33.860760932Z     at /opt/render/project/src/node_modules/esbuild/lib/main.js:970:16
+2025-11-26T08:46:33.860763152Z     at responseCallbacks.<computed> (/opt/render/project/src/node_modules/esbuild/lib/main.js:622:9)
+2025-11-26T08:46:33.860764803Z     at handleIncomingPacket (/opt/render/project/src/node_modules/esbuild/lib/main.js:677:12)
+2025-11-26T08:46:33.860766443Z     at Socket.readFromStdout (/opt/render/project/src/node_modules/esbuild/lib/main.js:600:7)
+2025-11-26T08:46:33.860768143Z     at Socket.emit (node:events:518:28)
+2025-11-26T08:46:33.860770563Z     at addChunk (node:internal/streams/readable:561:12)
+2025-11-26T08:46:33.918890758Z ==> Build failed 😞
+2025-11-26T08:46:33.918908108Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
