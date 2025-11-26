@@ -14,8 +14,7 @@ export function selectFilesViaInput(): Promise<File[]> {
     const input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
-    input.accept = ACCEPTED_TYPES;
-    input.webkitdirectory = true;
+    (input as any).webkitdirectory = true;
     
     input.onchange = () => {
       const files = Array.from(input.files || []);
