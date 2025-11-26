@@ -143,8 +143,11 @@ export function Toolbar({
             </div>
           )}
           {indexingError && (
-            <div className="text-white text-sm bg-red-600 px-3 py-1 rounded max-w-md truncate" title={indexingError}>
-              {indexingError}
+            <div 
+              className="text-yellow-200 text-xs bg-yellow-800 bg-opacity-50 px-2 py-1 rounded cursor-help" 
+              title={indexingError}
+            >
+              AI offline
             </div>
           )}
           <button
