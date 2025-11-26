@@ -37,15 +37,16 @@ export function selectFilesViaInput(): Promise<File[]> {
 
 export function selectFolderViaInput(): Promise<File[]> {
   return new Promise((resolve) => {
-    console.log('Opening file picker for folder contents...');
+    console.log('Opening folder picker (webkitdirectory)...');
     const input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
-    input.accept = 'image/*,video/*';
+    (input as any).webkitdirectory = true;
+    (input as any).directory = true;
     
     input.onchange = () => {
       const files = Array.from(input.files || []);
-      console.log(`File picker returned ${files.length} files`);
+      console.log(`Folder picker returned ${files.length} files`);
       if (files.length > 0) {
         console.log('First few files:', files.slice(0, 5).map(f => f.name));
       }
@@ -53,7 +54,7 @@ export function selectFolderViaInput(): Promise<File[]> {
     };
     
     input.oncancel = () => {
-      console.log('File picker was cancelled');
+      console.log('Folder picker was cancelled');
       resolve([]);
     };
     
@@ -136,9 +137,11 @@ function getMediaType(filename: string): 'image' | 'video' | null {
 }
 
 export async function loadMediaFilesFromDirectory(
-  dirHandle: FileSystemDirectoryHandle
+  dirHandle: FileSystemDirectoryHandle,
+  basePath: string = ''
 ): Promise<MediaFile[]> {
   const files: MediaFile[] = [];
+  const currentPath = basePath ? `${basePath}/${dirHandle.name}` : dirHandle.name;
   
   for await (const entry of dirHandle.values()) {
     if (entry.kind === 'file' && isMediaFile(entry.name)) {
@@ -151,11 +154,15 @@ export async function loadMediaFilesFromDirectory(
           file,
           handle: fileHandle,
           name: entry.name,
-          path: `${dirHandle.name}/${entry.name}`,
+          path: `${currentPath}/${entry.name}`,
           type,
           lastModified: file.lastModified,
         });
       }
+    } else if (entry.kind === 'directory') {
+      const subDirHandle = entry as FileSystemDirectoryHandle;
+      const subFiles = await loadMediaFilesFromDirectory(subDirHandle, currentPath);
+      files.push(...subFiles);
     }
   }
   
