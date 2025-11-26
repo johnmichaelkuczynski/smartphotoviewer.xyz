@@ -14,17 +14,15 @@ export function GridView({ files, columns, onFileClick, onContextMenu, onColumns
   const gridRef = useRef<HTMLDivElement>(null);
 
   const handleWheel = useCallback((e: WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      if (e.deltaY > 0) {
-        // Scroll down = more columns = smaller photos
-        const newColumns = Math.min(columns + 1, 50);
-        onColumnsChange(newColumns);
-      } else if (e.deltaY < 0) {
-        // Scroll up = fewer columns = bigger photos
-        const newColumns = Math.max(columns - 1, 2);
-        onColumnsChange(newColumns);
-      }
+    e.preventDefault();
+    if (e.deltaY > 0) {
+      // Scroll down (backward) = more columns = smaller photos
+      const newColumns = Math.min(columns + 1, 20);
+      onColumnsChange(newColumns);
+    } else if (e.deltaY < 0) {
+      // Scroll up (forward) = fewer columns = bigger photos
+      const newColumns = Math.max(columns - 1, 1);
+      onColumnsChange(newColumns);
     }
   }, [columns, onColumnsChange]);
 
