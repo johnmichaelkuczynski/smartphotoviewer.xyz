@@ -321,7 +321,7 @@ function App() {
       <Toolbar
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        onOpenFolder={handleOpenFolder}
+        onOpenFiles={handleOpenFiles}
         onGroupByTheme={handleGroupByTheme}
         onSlideshow={() => setShowSlideshow(true)}
         onSettings={() => setShowSettings(true)}

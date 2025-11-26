@@ -3,7 +3,7 @@ import type { ViewMode } from '../types';
 interface ToolbarProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  onOpenFolder: () => void;
+  onOpenFiles: () => void;
   onGroupByTheme: () => void;
   onSlideshow: () => void;
   onSettings: () => void;
@@ -18,7 +18,7 @@ interface ToolbarProps {
 export function Toolbar({
   viewMode,
   onViewModeChange,
-  onOpenFolder,
+  onOpenFiles,
   onGroupByTheme,
   onSlideshow,
   onSettings,
@@ -34,7 +34,7 @@ export function Toolbar({
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-2">
           <button
-            onClick={onOpenFolder}
+            onClick={onOpenFiles}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition font-medium"
             title="Browse to a folder, then Ctrl+A to select all photos/videos"
           >
