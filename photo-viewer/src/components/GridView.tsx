@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import type { MediaFile } from '../types';
 
 interface GridViewProps {
@@ -6,11 +6,35 @@ interface GridViewProps {
   columns: number;
   onFileClick: (file: MediaFile, index: number) => void;
   onContextMenu: (file: MediaFile, index: number, event: React.MouseEvent) => void;
+  onColumnsChange: (columns: number) => void;
 }
 
-export function GridView({ files, columns, onFileClick, onContextMenu }: GridViewProps) {
+export function GridView({ files, columns, onFileClick, onContextMenu, onColumnsChange }: GridViewProps) {
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (e.deltaY > 0) {
+        // Scroll down = more columns = smaller photos
+        const newColumns = Math.min(columns + 1, 50);
+        onColumnsChange(newColumns);
+      } else if (e.deltaY < 0) {
+        // Scroll up = fewer columns = bigger photos
+        const newColumns = Math.max(columns - 1, 2);
+        onColumnsChange(newColumns);
+      }
+    }
+  }, [columns, onColumnsChange]);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (grid) {
+      grid.addEventListener('wheel', handleWheel, { passive: false });
+      return () => grid.removeEventListener('wheel', handleWheel);
+    }
+  }, [handleWheel]);
 
   useEffect(() => {
     const newThumbnails = new Map<string, string>();

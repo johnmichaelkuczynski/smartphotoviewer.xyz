@@ -322,6 +322,7 @@ function App() {
                 columns={viewMode.gridColumns || 10}
                 onFileClick={handleFileClick}
                 onContextMenu={handleContextMenu}
+                onColumnsChange={(cols) => setViewMode({ ...viewMode, gridColumns: cols })}
               />
             )}
 
