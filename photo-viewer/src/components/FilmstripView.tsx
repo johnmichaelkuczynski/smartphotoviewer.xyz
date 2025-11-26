@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { MediaFile } from '../types';
+import { extractVideoThumbnail } from '../services/fileSystemService';
 
 interface FilmstripViewProps {
   files: MediaFile[];
@@ -18,8 +19,11 @@ const THUMBNAIL_SIZES = {
 
 export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize, onContextMenu, onIndexChange }: FilmstripViewProps) {
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
+  const [videoUrls, setVideoUrls] = useState<Map<string, string>>(new Map());
+  const [loadingVideos, setLoadingVideos] = useState<Set<string>>(new Set());
   const currentFile = files[currentIndex];
   const size = THUMBNAIL_SIZES[thumbnailSize];
+  const urlsToRevokeRef = useRef<string[]>([]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -50,25 +54,63 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
   }, [currentIndex, files.length, onIndexChange]);
 
   useEffect(() => {
-    const newThumbnails = new Map<string, string>();
-    
-    files.forEach((file) => {
-      const url = file.thumbnailUrl || URL.createObjectURL(file.file);
-      newThumbnails.set(file.path, url);
-    });
-    
-    setThumbnails(newThumbnails);
-    
-    return () => {
-      newThumbnails.forEach(url => {
-        if (url.startsWith('blob:') && !files.some(f => f.thumbnailUrl === url)) {
-          URL.revokeObjectURL(url);
+    const generateThumbnails = async () => {
+      const newThumbnails = new Map<string, string>();
+      const newVideoUrls = new Map<string, string>();
+      const videoFiles: MediaFile[] = [];
+      
+      files.forEach((file) => {
+        if (file.thumbnailUrl) {
+          newThumbnails.set(file.path, file.thumbnailUrl);
+        } else if (file.type === 'image') {
+          const url = URL.createObjectURL(file.file);
+          urlsToRevokeRef.current.push(url);
+          newThumbnails.set(file.path, url);
+        } else if (file.type === 'video') {
+          const videoUrl = URL.createObjectURL(file.file);
+          urlsToRevokeRef.current.push(videoUrl);
+          newVideoUrls.set(file.path, videoUrl);
+          videoFiles.push(file);
         }
       });
+      
+      setThumbnails(new Map(newThumbnails));
+      setVideoUrls(new Map(newVideoUrls));
+      setLoadingVideos(new Set(videoFiles.map(f => f.path)));
+      
+      for (const videoFile of videoFiles) {
+        try {
+          const thumbnailUrl = await extractVideoThumbnail(videoFile.file);
+          urlsToRevokeRef.current.push(thumbnailUrl);
+          newThumbnails.set(videoFile.path, thumbnailUrl);
+          setThumbnails(new Map(newThumbnails));
+          setLoadingVideos(prev => {
+            const next = new Set(prev);
+            next.delete(videoFile.path);
+            return next;
+          });
+        } catch (err) {
+          console.error('Failed to generate video thumbnail:', videoFile.name, err);
+          setLoadingVideos(prev => {
+            const next = new Set(prev);
+            next.delete(videoFile.path);
+            return next;
+          });
+        }
+      }
+    };
+    
+    generateThumbnails();
+    
+    return () => {
+      urlsToRevokeRef.current.forEach(url => URL.revokeObjectURL(url));
+      urlsToRevokeRef.current = [];
     };
   }, [files]);
 
-  const currentUrl = thumbnails.get(currentFile?.path || '');
+  const currentUrl = currentFile?.type === 'video' 
+    ? videoUrls.get(currentFile?.path || '') 
+    : thumbnails.get(currentFile?.path || '');
 
   return (
     <div className="flex flex-col h-full bg-gray-900" onWheel={handleWheel}>
@@ -111,7 +153,14 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
                   onContextMenu(file, index, e);
                 }}
               >
-                {thumbnailUrl && (
+                {loadingVideos.has(file.path) ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                    <svg className="w-6 h-6 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                ) : thumbnailUrl ? (
                   <div className="relative w-full h-full">
                     <img
                       src={thumbnailUrl}
@@ -119,12 +168,20 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
                       className="w-full h-full object-cover"
                     />
                     {file.type === 'video' && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                        <svg className="w-6 h-6 text-white opacity-75" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-black bg-opacity-50 rounded-full p-1">
+                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
                       </div>
                     )}
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                    <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                    </svg>
                   </div>
                 )}
               </div>
