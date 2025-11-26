@@ -1,7 +1,7 @@
 import type { MediaFile } from '../types';
 
-const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'heic', 'heif'];
-const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'm4v', 'flv', 'wmv'];
+const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'jpe', 'jfif', 'png', 'gif', 'webp', 'bmp', 'svg', 'heic', 'heif', 'avif', 'tif', 'tiff'];
+const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'm4v', 'flv', 'wmv', '3gp', 'mpg', 'mpeg'];
 const ACCEPTED_TYPES = [
   ...IMAGE_EXTENSIONS.map(ext => `image/${ext === 'jpg' ? 'jpeg' : ext}`),
   ...VIDEO_EXTENSIONS.map(ext => `video/${ext}`),
@@ -11,6 +11,7 @@ const ACCEPTED_TYPES = [
 
 export function selectFilesViaInput(): Promise<File[]> {
   return new Promise((resolve) => {
+    console.log('Opening folder picker via input element...');
     const input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
@@ -18,10 +19,15 @@ export function selectFilesViaInput(): Promise<File[]> {
     
     input.onchange = () => {
       const files = Array.from(input.files || []);
+      console.log(`Folder picker returned ${files.length} files`);
+      if (files.length > 0) {
+        console.log('First few files:', files.slice(0, 5).map(f => f.name));
+      }
       resolve(files);
     };
     
     input.oncancel = () => {
+      console.log('Folder picker was cancelled');
       resolve([]);
     };
     
@@ -149,10 +155,18 @@ export async function loadMediaFileFromHandle(
 }
 
 export function processFilesToMediaFiles(files: File[]): MediaFile[] {
+  console.log(`Processing ${files.length} files from folder picker`);
+  
   const mediaFiles: MediaFile[] = [];
   
   for (const file of files) {
-    if (!isMediaFile(file.name)) continue;
+    const ext = getFileExtension(file.name);
+    const isMedia = isMediaFile(file.name);
+    
+    if (!isMedia) {
+      console.log(`Skipping non-media file: ${file.name} (ext: ${ext})`);
+      continue;
+    }
     
     const type = getMediaType(file.name);
     if (!type) continue;
@@ -169,6 +183,7 @@ export function processFilesToMediaFiles(files: File[]): MediaFile[] {
     });
   }
   
+  console.log(`Found ${mediaFiles.length} media files`);
   return mediaFiles.sort((a, b) => a.name.localeCompare(b.name));
 }
 
