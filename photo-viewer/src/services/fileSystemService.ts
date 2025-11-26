@@ -35,6 +35,33 @@ export function selectFilesViaInput(): Promise<File[]> {
   });
 }
 
+export function selectFolderViaInput(): Promise<File[]> {
+  return new Promise((resolve) => {
+    console.log('Opening folder picker via input...');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.webkitdirectory = true;
+    (input as any).directory = true;
+    (input as any).mozdirectory = true;
+    
+    input.onchange = () => {
+      const files = Array.from(input.files || []);
+      console.log(`Folder picker returned ${files.length} files`);
+      if (files.length > 0) {
+        console.log('First few files:', files.slice(0, 5).map(f => f.name));
+      }
+      resolve(files);
+    };
+    
+    input.oncancel = () => {
+      console.log('Folder picker was cancelled');
+      resolve([]);
+    };
+    
+    input.click();
+  });
+}
+
 export function selectSingleFileViaInput(): Promise<File | null> {
   return new Promise((resolve) => {
     const input = document.createElement('input');

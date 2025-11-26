@@ -4,6 +4,7 @@ import {
   selectFolder, 
   loadMediaFilesFromDirectory, 
   selectFilesViaInput,
+  selectFolderViaInput,
   processFilesToMediaFiles
 } from './services/fileSystemService';
 import { initializeModel, batchGenerateEmbeddings } from './services/embeddingService';
@@ -92,6 +93,16 @@ function App() {
     }
   };
 
+  const loadMediaFiles = (mediaFiles: MediaFile[]) => {
+    setFiles(mediaFiles);
+    setDisplayFiles(mediaFiles);
+    setOriginalFiles(mediaFiles);
+    setShowClusters(false);
+    setEmbeddings(new Map());
+    setIndexingError('');
+    setViewMode({ type: 'grid', gridColumns: 10 });
+  };
+
   const handleOpenFolder = async () => {
     let mediaFiles: MediaFile[] = [];
     
@@ -105,7 +116,7 @@ function App() {
     }
     
     if (mediaFiles.length === 0) {
-      const rawFiles = await selectFilesViaInput();
+      const rawFiles = await selectFolderViaInput();
       if (rawFiles.length === 0) return;
       mediaFiles = processFilesToMediaFiles(rawFiles);
     }
@@ -115,13 +126,21 @@ function App() {
       return;
     }
     
-    setFiles(mediaFiles);
-    setDisplayFiles(mediaFiles);
-    setOriginalFiles(mediaFiles);
-    setShowClusters(false);
-    setEmbeddings(new Map());
-    setIndexingError('');
-    setViewMode({ type: 'grid', gridColumns: 10 });
+    loadMediaFiles(mediaFiles);
+  };
+
+  const handleOpenFiles = async () => {
+    const rawFiles = await selectFilesViaInput();
+    if (rawFiles.length === 0) return;
+    
+    const mediaFiles = processFilesToMediaFiles(rawFiles);
+    
+    if (mediaFiles.length === 0) {
+      alert('No supported media files found in the selected files.');
+      return;
+    }
+    
+    loadMediaFiles(mediaFiles);
   };
 
   const handleFileClick = (file: MediaFile, index: number) => {

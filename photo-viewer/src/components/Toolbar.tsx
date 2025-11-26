@@ -4,6 +4,7 @@ interface ToolbarProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onOpenFolder: () => void;
+  onOpenFiles: () => void;
   onGroupByTheme: () => void;
   onSlideshow: () => void;
   onSettings: () => void;
@@ -19,6 +20,7 @@ export function Toolbar({
   viewMode,
   onViewModeChange,
   onOpenFolder,
+  onOpenFiles,
   onGroupByTheme,
   onSlideshow,
   onSettings,
@@ -36,7 +38,14 @@ export function Toolbar({
           <button
             onClick={onOpenFolder}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition font-medium"
-            title="Select multiple photos and videos"
+            title="Select a folder to load all photos and videos"
+          >
+            Open Folder
+          </button>
+          <button
+            onClick={onOpenFiles}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition"
+            title="Select individual photos and videos"
           >
             Open Files
           </button>
