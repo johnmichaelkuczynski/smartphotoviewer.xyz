@@ -121,7 +121,7 @@ export function GridView({ files, columns, onFileClick, onContextMenu, onColumns
                 <img
                   src={thumbnailUrl}
                   alt={file.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                   loading="lazy"
                 />
                 {file.type === 'video' && (
