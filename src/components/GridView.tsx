@@ -14,15 +14,16 @@ export function GridView({ files, columns, onFileClick, onContextMenu, onColumns
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
   const [loadingVideos, setLoadingVideos] = useState<Set<string>>(new Set());
   const gridRef = useRef<HTMLDivElement>(null);
+  const urlsRef = useRef<string[]>([]);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadingRef = useRef<Set<string>>(new Set());
 
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     if (e.deltaY > 0) {
-      // Scroll down (backward) = more columns = smaller photos
       const newColumns = Math.min(columns + 1, 20);
       onColumnsChange(newColumns);
     } else if (e.deltaY < 0) {
-      // Scroll up (forward) = fewer columns = bigger photos
       const newColumns = Math.max(columns - 1, 1);
       onColumnsChange(newColumns);
     }
@@ -37,55 +38,79 @@ export function GridView({ files, columns, onFileClick, onContextMenu, onColumns
   }, [handleWheel]);
 
   useEffect(() => {
-    const urlsToRevoke: string[] = [];
+    return () => {
+      urlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      urlsRef.current = [];
+    };
+  }, []);
+
+  useEffect(() => {
+    setThumbnails(new Map());
+    loadingRef.current = new Set();
+    urlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    urlsRef.current = [];
+  }, [files]);
+
+  const loadThumbnail = useCallback(async (file: MediaFile) => {
+    if (thumbnails.has(file.path) || loadingRef.current.has(file.path)) {
+      return;
+    }
     
-    const generateThumbnails = async () => {
-      const newThumbnails = new Map<string, string>();
-      const videoFiles: MediaFile[] = [];
-      
-      files.forEach((file) => {
-        if (file.thumbnailUrl) {
-          newThumbnails.set(file.path, file.thumbnailUrl);
-        } else if (file.type === 'image') {
-          const url = URL.createObjectURL(file.file);
-          urlsToRevoke.push(url);
-          newThumbnails.set(file.path, url);
-        } else if (file.type === 'video') {
-          videoFiles.push(file);
-        }
-      });
-      
-      setThumbnails(new Map(newThumbnails));
-      setLoadingVideos(new Set(videoFiles.map(f => f.path)));
-      
-      for (const videoFile of videoFiles) {
+    loadingRef.current.add(file.path);
+
+    try {
+      if (file.type === 'image') {
+        const url = URL.createObjectURL(file.file);
+        urlsRef.current.push(url);
+        setThumbnails(prev => new Map(prev).set(file.path, url));
+      } else if (file.type === 'video') {
+        setLoadingVideos(prev => new Set(prev).add(file.path));
         try {
-          const thumbnailUrl = await extractVideoThumbnail(videoFile.file);
-          urlsToRevoke.push(thumbnailUrl);
-          newThumbnails.set(videoFile.path, thumbnailUrl);
-          setThumbnails(new Map(newThumbnails));
-          setLoadingVideos(prev => {
-            const next = new Set(prev);
-            next.delete(videoFile.path);
-            return next;
-          });
+          const url = await extractVideoThumbnail(file.file);
+          urlsRef.current.push(url);
+          setThumbnails(prev => new Map(prev).set(file.path, url));
         } catch (err) {
-          console.error('Failed to generate video thumbnail:', videoFile.name, err);
+          console.error('Video thumbnail failed:', file.name);
+        } finally {
           setLoadingVideos(prev => {
             const next = new Set(prev);
-            next.delete(videoFile.path);
+            next.delete(file.path);
             return next;
           });
         }
       }
-    };
-    
-    generateThumbnails();
-    
+    } catch (err) {
+      console.error('Thumbnail load failed:', file.name);
+    }
+  }, [thumbnails]);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0', 10);
+            const file = files[index];
+            if (file) {
+              loadThumbnail(file);
+            }
+          }
+        });
+      },
+      { root: gridRef.current, rootMargin: '200px', threshold: 0 }
+    );
+
     return () => {
-      urlsToRevoke.forEach(url => URL.revokeObjectURL(url));
+      observerRef.current?.disconnect();
     };
-  }, [files]);
+  }, [files, loadThumbnail]);
+
+  const observeElement = useCallback((el: HTMLDivElement | null, index: number) => {
+    if (el && observerRef.current) {
+      el.setAttribute('data-index', index.toString());
+      observerRef.current.observe(el);
+    }
+  }, []);
 
   return (
     <div
@@ -102,6 +127,7 @@ export function GridView({ files, columns, onFileClick, onContextMenu, onColumns
         return (
           <div
             key={file.path}
+            ref={(el) => observeElement(el, index)}
             className="relative bg-gray-800 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group flex items-center justify-center aspect-square"
             onClick={() => onFileClick(file, index)}
             onContextMenu={(e) => {
