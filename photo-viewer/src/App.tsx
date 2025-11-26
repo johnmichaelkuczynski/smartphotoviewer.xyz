@@ -410,6 +410,7 @@ function App() {
             {viewMode.type === 'viewer' && viewerFile && (
               <Viewer
                 file={viewerFile}
+                files={displayFiles}
                 currentIndex={viewerIndex}
                 totalFiles={displayFiles.length}
                 onNext={handleViewerNext}
