@@ -6,7 +6,7 @@ interface FilmstripViewProps {
   files: MediaFile[];
   currentIndex: number;
   onFileClick: (file: MediaFile, index: number) => void;
-  thumbnailSize: 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge';
+  thumbnailSize: 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge' | '3xlarge';
   onContextMenu: (file: MediaFile, index: number, event: React.MouseEvent) => void;
   onIndexChange: (index: number) => void;
 }
@@ -17,6 +17,7 @@ const THUMBNAIL_SIZES = {
   large: 160,
   xlarge: 200,
   '2xlarge': 260,
+  '3xlarge': 320,
 };
 
 export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize, onContextMenu, onIndexChange }: FilmstripViewProps) {

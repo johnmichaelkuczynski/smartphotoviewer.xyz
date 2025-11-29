@@ -96,7 +96,7 @@ export function Toolbar({
                   onChange={(e) =>
                     onViewModeChange({
                       ...viewMode,
-                      filmstripSize: e.target.value as 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge',
+                      filmstripSize: e.target.value as 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge' | '3xlarge',
                     })
                   }
                   className="px-3 py-1 bg-gray-700 text-white rounded"
@@ -106,6 +106,7 @@ export function Toolbar({
                   <option value="large">Large</option>
                   <option value="xlarge">Extra Large</option>
                   <option value="2xlarge">2X Large</option>
+                  <option value="3xlarge">3X Large</option>
                 </select>
               </div>
             )}
