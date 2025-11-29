@@ -8,7 +8,8 @@ A high-performance photo and video viewer with completely local AI-powered organ
 
 ## Recent Changes
 
-### Latest Improvements (November 26, 2025)
+### Latest Improvements (November 29, 2025)
+- **8 thumbnail sizes** - Small, Medium, Large, XL, 2X, 3X, 4X, 5X (80px to 500px)
 - **Filmstrip auto-scroll** - Filmstrip scrolls to keep current image visible and centered
 - **Bright yellow indicator** - Active thumbnail has thick yellow border with glow (very visible)
 - **Zoom persists** - Zoom level stays when navigating between images in filmstrip
