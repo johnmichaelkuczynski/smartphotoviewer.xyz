@@ -27,7 +27,7 @@ export interface ViewMode {
   type: 'grid' | 'filmstrip' | 'viewer' | 'slideshow';
   gridColumns?: number;
   gridRows?: number;
-  filmstripSize?: 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge' | '3xlarge';
+  filmstripSize?: 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge' | '3xlarge' | '4xlarge' | '5xlarge';
 }
 
 export interface AppSettings {
