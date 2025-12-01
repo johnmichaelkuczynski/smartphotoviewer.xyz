@@ -54,15 +54,19 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
     }
   }, [currentIndex, files.length, onIndexChange]);
 
+  const [dragMoved, setDragMoved] = useState(false);
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (currentFile?.type === 'image') {
+    if (currentFile?.type === 'image' && e.button === 0) {
       setIsDragging(true);
+      setDragMoved(false);
       setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     }
   }, [currentFile?.type, panOffset]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isDragging) {
+      setDragMoved(true);
       setPanOffset({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y
@@ -71,12 +75,22 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
   }, [isDragging, dragStart]);
 
   const handleMouseUp = useCallback(() => {
+    if (isDragging && !dragMoved && currentFile?.type === 'image') {
+      setZoom(prev => Math.min(10, prev + 0.25));
+    }
     setIsDragging(false);
-  }, []);
+  }, [isDragging, dragMoved, currentFile?.type]);
 
   const handleMouseLeave = useCallback(() => {
     setIsDragging(false);
   }, []);
+
+  const handlePreviewContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    if (currentFile?.type === 'image') {
+      setZoom(prev => Math.max(0.1, prev - 0.25));
+    }
+  }, [currentFile?.type]);
 
   useEffect(() => {
     setPanOffset({ x: 0, y: 0 });
@@ -170,13 +184,14 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
       <div 
         ref={previewRef}
         className={`flex-1 flex items-center justify-center p-4 overflow-hidden select-none ${
-          currentFile?.type === 'image' ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''
+          currentFile?.type === 'image' ? (isDragging ? 'cursor-grabbing' : 'cursor-zoom-in') : ''
         }`}
         onWheel={handlePreviewWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onContextMenu={handlePreviewContextMenu}
       >
         {currentFile && currentUrl && (
           <div className="flex items-center justify-center">
@@ -209,7 +224,7 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
       {currentFile?.type === 'image' && (
         <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
           <div className="bg-gray-800/80 px-3 py-1 rounded text-white text-sm">
-            Zoom: {Math.round(zoom * 100)}%
+            {Math.round(zoom * 100)}% | Click +  Right-click -
           </div>
           {zoom !== 1 && (
             <button
