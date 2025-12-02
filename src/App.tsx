@@ -435,6 +435,7 @@ function App() {
                 currentIndex={viewerIndex}
                 onFileClick={(_, index) => setViewerIndex(index)}
                 thumbnailSize={viewMode.filmstripSize || 'medium'}
+                onThumbnailSizeChange={(size) => setViewMode({ ...viewMode, filmstripSize: size })}
                 onContextMenu={handleContextMenu}
                 onIndexChange={setViewerIndex}
               />

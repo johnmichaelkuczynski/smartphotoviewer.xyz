@@ -2,11 +2,16 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import type { MediaFile } from '../types';
 import { extractVideoThumbnail } from '../services/fileSystemService';
 
+type ThumbnailSize = 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge' | '3xlarge' | '4xlarge' | '5xlarge';
+
+const SIZE_ORDER: ThumbnailSize[] = ['small', 'medium', 'large', 'xlarge', '2xlarge', '3xlarge', '4xlarge', '5xlarge'];
+
 interface FilmstripViewProps {
   files: MediaFile[];
   currentIndex: number;
   onFileClick: (file: MediaFile, index: number) => void;
-  thumbnailSize: 'small' | 'medium' | 'large' | 'xlarge' | '2xlarge' | '3xlarge' | '4xlarge' | '5xlarge';
+  thumbnailSize: ThumbnailSize;
+  onThumbnailSizeChange: (size: ThumbnailSize) => void;
   onContextMenu: (file: MediaFile, index: number, event: React.MouseEvent) => void;
   onIndexChange: (index: number) => void;
 }
@@ -22,7 +27,7 @@ const THUMBNAIL_SIZES = {
   '5xlarge': 500,
 };
 
-export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize, onContextMenu, onIndexChange }: FilmstripViewProps) {
+export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize, onThumbnailSizeChange, onContextMenu, onIndexChange }: FilmstripViewProps) {
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
   const [videoUrls, setVideoUrls] = useState<Map<string, string>>(new Map());
   const [loadingVideos, setLoadingVideos] = useState<Set<string>>(new Set());
@@ -53,6 +58,31 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
       onIndexChange(prevIndex);
     }
   }, [currentIndex, files.length, onIndexChange]);
+
+  const zoomThumbnailsIn = useCallback(() => {
+    const currentIdx = SIZE_ORDER.indexOf(thumbnailSize);
+    if (currentIdx < SIZE_ORDER.length - 1) {
+      onThumbnailSizeChange(SIZE_ORDER[currentIdx + 1]);
+    }
+  }, [thumbnailSize, onThumbnailSizeChange]);
+
+  const zoomThumbnailsOut = useCallback(() => {
+    const currentIdx = SIZE_ORDER.indexOf(thumbnailSize);
+    if (currentIdx > 0) {
+      onThumbnailSizeChange(SIZE_ORDER[currentIdx - 1]);
+    }
+  }, [thumbnailSize, onThumbnailSizeChange]);
+
+  const handleFilmstripClick = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('[data-thumbnail]')) return;
+    zoomThumbnailsIn();
+  }, [zoomThumbnailsIn]);
+
+  const handleFilmstripContextMenu = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('[data-thumbnail]')) return;
+    e.preventDefault();
+    zoomThumbnailsOut();
+  }, [zoomThumbnailsOut]);
 
   const [dragMoved, setDragMoved] = useState(false);
 
@@ -237,7 +267,12 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
         </div>
       )}
 
-      <div className="p-4 border-t border-gray-700" onWheel={handleFilmstripWheel}>
+      <div 
+        className="p-4 border-t border-gray-700 cursor-zoom-in" 
+        onWheel={handleFilmstripWheel}
+        onClick={handleFilmstripClick}
+        onContextMenu={handleFilmstripContextMenu}
+      >
         <div ref={filmstripRef} className="flex gap-2 overflow-x-auto pb-2">
           {files.map((file, index) => {
             const thumbnailUrl = thumbnails.get(file.path);
@@ -246,6 +281,7 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
             return (
               <div
                 key={file.path}
+                data-thumbnail="true"
                 ref={(el) => {
                   if (el) thumbnailRefs.current.set(index, el);
                 }}
@@ -253,9 +289,10 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
                   isActive ? 'ring-4 ring-yellow-400 scale-110 shadow-lg shadow-yellow-400/50' : 'hover:ring-2 hover:ring-gray-500'
                 }`}
                 style={{ width: size, height: size }}
-                onClick={() => onFileClick(file, index)}
+                onClick={(e) => { e.stopPropagation(); onFileClick(file, index); }}
                 onContextMenu={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   onContextMenu(file, index, e);
                 }}
               >
