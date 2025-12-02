@@ -73,17 +73,6 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
     }
   }, [thumbnailSize, onThumbnailSizeChange]);
 
-  const handleFilmstripClick = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('[data-thumbnail]')) return;
-    zoomThumbnailsIn();
-  }, [zoomThumbnailsIn]);
-
-  const handleFilmstripContextMenu = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('[data-thumbnail]')) return;
-    e.preventDefault();
-    zoomThumbnailsOut();
-  }, [zoomThumbnailsOut]);
-
   const [dragMoved, setDragMoved] = useState(false);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -267,13 +256,25 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
         </div>
       )}
 
-      <div 
-        className="p-4 border-t border-gray-700 cursor-zoom-in" 
-        onWheel={handleFilmstripWheel}
-        onClick={handleFilmstripClick}
-        onContextMenu={handleFilmstripContextMenu}
-      >
-        <div ref={filmstripRef} className="flex gap-2 overflow-x-auto pb-2">
+      <div className="p-4 border-t border-gray-700">
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={zoomThumbnailsOut}
+            disabled={thumbnailSize === 'small'}
+            className="px-2 py-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded text-sm font-bold"
+          >
+            -
+          </button>
+          <span className="text-white text-xs">{size}px</span>
+          <button
+            onClick={zoomThumbnailsIn}
+            disabled={thumbnailSize === '5xlarge'}
+            className="px-2 py-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded text-sm font-bold"
+          >
+            +
+          </button>
+        </div>
+        <div ref={filmstripRef} className="flex gap-2 overflow-x-auto pb-2" onWheel={handleFilmstripWheel}>
           {files.map((file, index) => {
             const thumbnailUrl = thumbnails.get(file.path);
             const isActive = index === currentIndex;
@@ -281,7 +282,6 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
             return (
               <div
                 key={file.path}
-                data-thumbnail="true"
                 ref={(el) => {
                   if (el) thumbnailRefs.current.set(index, el);
                 }}
@@ -289,10 +289,9 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
                   isActive ? 'ring-4 ring-yellow-400 scale-110 shadow-lg shadow-yellow-400/50' : 'hover:ring-2 hover:ring-gray-500'
                 }`}
                 style={{ width: size, height: size }}
-                onClick={(e) => { e.stopPropagation(); onFileClick(file, index); }}
+                onClick={() => onFileClick(file, index)}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  e.stopPropagation();
                   onContextMenu(file, index, e);
                 }}
               >
