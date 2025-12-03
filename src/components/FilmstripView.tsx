@@ -229,6 +229,7 @@ export function FilmstripView({ files, currentIndex, onFileClick, thumbnailSize,
               <video
                 src={currentUrl}
                 controls
+                loop
                 className="max-w-full max-h-full"
               />
             )}

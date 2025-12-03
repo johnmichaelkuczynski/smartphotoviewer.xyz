@@ -177,6 +177,7 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
                     ref={el => { multiVideoRefs.current[index] = el; }}
                     src={slot.url}
                     controls
+                    loop
                     className="flex-1 w-full object-contain min-h-0"
                     onLoadedMetadata={(e) => {
                       (e.target as HTMLVideoElement).playbackRate = slot.speed;
@@ -371,6 +372,7 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
             ref={videoRef}
             src={url}
             controls
+            loop
             className="max-w-full max-h-full"
             onLoadedMetadata={() => {
               if (videoRef.current) videoRef.current.playbackRate = speed;
