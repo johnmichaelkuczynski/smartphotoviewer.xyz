@@ -20,17 +20,30 @@ interface VideoSlot {
 }
 
 const SPEED_PRESETS = [0.2, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5];
+const SLOT_OPTIONS = [1, 2, 4, 6, 8] as const;
+
+const getGridClass = (slotCount: number) => {
+  switch (slotCount) {
+    case 1: return 'grid-cols-1 grid-rows-1';
+    case 2: return 'grid-cols-2 grid-rows-1';
+    case 4: return 'grid-cols-2 grid-rows-2';
+    case 6: return 'grid-cols-3 grid-rows-2';
+    case 8: return 'grid-cols-4 grid-rows-2';
+    default: return 'grid-cols-2 grid-rows-2';
+  }
+};
 
 export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevious, onClose, onOpenFiles }: ViewerProps) {
   const [zoom, setZoom] = useState(1);
   const [url, setUrl] = useState<string>('');
   const [speed, setSpeed] = useState(1);
   const [multiVideoMode, setMultiVideoMode] = useState(false);
-  const [videoSlots, setVideoSlots] = useState<(VideoSlot | null)[]>([null, null, null, null]);
+  const [slotCount, setSlotCount] = useState<number>(4);
+  const [videoSlots, setVideoSlots] = useState<(VideoSlot | null)[]>(Array(8).fill(null));
   const [videoThumbnails, setVideoThumbnails] = useState<Map<string, string>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const multiVideoRefs = useRef<(HTMLVideoElement | null)[]>([null, null, null, null]);
+  const multiVideoRefs = useRef<(HTMLVideoElement | null)[]>(Array(8).fill(null));
   const thumbnailUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -110,7 +123,7 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
   };
 
   const videoFiles = files.filter(f => f.type === 'video');
-  const activeSlotCount = videoSlots.filter(s => s !== null).length;
+  const activeSlotCount = videoSlots.slice(0, slotCount).filter(s => s !== null).length;
 
   useEffect(() => {
     if (multiVideoMode && videoFiles.length > 0) {
@@ -165,11 +178,27 @@ export function Viewer({ file, files, currentIndex, totalFiles, onNext, onPrevio
               Single View
             </button>
           </div>
-          <span className="text-white font-medium">Multi-Video Mode ({activeSlotCount}/4 videos)</span>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Slots:</span>
+            {SLOT_OPTIONS.map(count => (
+              <button
+                key={count}
+                onClick={() => setSlotCount(count)}
+                className={`px-3 py-1 rounded text-sm font-medium transition ${
+                  slotCount === count 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                }`}
+              >
+                {count}
+              </button>
+            ))}
+            <span className="text-white font-medium ml-4">({activeSlotCount}/{slotCount} videos)</span>
+          </div>
         </div>
 
-        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-1 p-1 bg-gray-800 min-h-0 overflow-hidden">
-          {videoSlots.map((slot, index) => (
+        <div className={`flex-1 grid ${getGridClass(slotCount)} gap-1 p-1 bg-gray-800 min-h-0 overflow-hidden`}>
+          {videoSlots.slice(0, slotCount).map((slot, index) => (
             <div key={index} className="relative bg-gray-900 rounded overflow-hidden min-h-0">
               {slot ? (
                 <div className="absolute inset-0 flex flex-col">
